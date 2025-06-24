@@ -1,0 +1,28 @@
+# Dependencies
+/node_modules
+/Backend/node_modules
+
+# Strapi / Backend
+/Backend/.tmp
+/Backend/build
+/Backend/public/uploads
+!/Backend/public/uploads/.gitkeep
+/Backend/data/
+!/Backend/data/.gitkeep
+/Backend/.env
+/Backend/config/google-credentials.json
+*.db
+
+# Frontend
+/Frontend/dist
+/Frontend/.env*
+!/Frontend/.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# System
+.DS_Store
+Thumbs.db 

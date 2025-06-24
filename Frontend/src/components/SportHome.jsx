@@ -176,7 +176,15 @@ export default function SportHome() {
               boxShadow: '0 4px 24px 0 rgba(25,118,210,0.2)',
               '&:hover': { background: '#2196f3', color: '#181818' },
             }}
-            onClick={() => navigate('/#products')}
+            onClick={() => {
+              const productsSection = document.getElementById('products-section');
+              if (productsSection) {
+                productsSection.scrollIntoView({ 
+                  behavior: 'smooth',
+                  block: 'start'
+                });
+              }
+            }}
           >
             Shop Now
           </Button>

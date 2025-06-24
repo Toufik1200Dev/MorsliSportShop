@@ -1,16 +1,25 @@
 'use strict';
 const { google } = require('googleapis');
-const path = require('path');
 
 // NOTE: You will need to provide your own credentials and spreadsheet ID
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
-const KEY_FILE_PATH = 'C:\\Users\\rahma\\OneDrive\\Desktop\\fullMERN-ecommerce\\e-commerce\\Backend\\config\\google-credentials.json'
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+
+// Parse the credentials from the environment variable
+let credentials;
+try {
+  credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+} catch (error) {
+  console.error("Could not parse GOOGLE_CREDENTIALS_JSON:", error);
+  // Handle the error appropriately. For example, by throwing it
+  // or by setting credentials to null and handling that case below.
+  throw new Error("Invalid GOOGLE_CREDENTIALS_JSON environment variable.");
+}
 
 class GoogleSheetsService {
   constructor() {
     this.auth = new google.auth.GoogleAuth({
-      keyFile: KEY_FILE_PATH,
+      credentials,
       scopes: SCOPES,
     });
     this.sheets = google.sheets({ version: 'v4', auth: this.auth });

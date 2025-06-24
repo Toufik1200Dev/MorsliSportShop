@@ -41,3 +41,39 @@
  
 /* for Firefox */
  html {scrollbar-color: #c7c5c6 #16477f;} 
+
+/* Category scrolling styles */
+.category-scroll-container {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+}
+
+.myButton {
+  background-color: #1e1e30 !important;
+  color: #fff !important;
+  border: 1px solid #2d3748 !important;
+  border-radius: 8px !important;
+  padding: 6px 16px !important;
+  min-width: 100px !important;
+  transition: all 0.3s ease !important;
+}
+
+.myButton:hover {
+  background-color: #2d3748 !important;
+  border-color: #e94560 !important;
+}
+
+.myButton.Mui-selected {
+  background-color: #e94560 !important;
+  color: #fff !important;
+  border-color: #e94560 !important;
+}
+
+.myButton.Mui-selected:hover {
+  background-color: #d7263d !important;
+}
+
+/* Ensure smooth scrolling */
+* {
+  scroll-behavior: smooth;
+} 
