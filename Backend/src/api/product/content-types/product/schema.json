@@ -1,0 +1,60 @@
+{
+  "kind": "collectionType",
+  "collectionName": "products",
+  "info": {
+    "singularName": "product",
+    "pluralName": "products",
+    "displayName": "Product"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Product_name": {
+      "type": "string",
+      "required": true
+    },
+    "Product_desctiption": {
+      "type": "text",
+      "required": false
+    },
+    "Product_price": {
+      "type": "biginteger",
+      "required": true,
+      "default": "1000"
+    },
+    "Product_img": {
+      "type": "media",
+      "multiple": true,
+      "required": true,
+      "allowedTypes": [
+        "images",
+        "files"
+      ]
+    },
+    "Product_size": {
+      "type": "enumeration",
+      "enum": [
+        "xs",
+        "s",
+        "m",
+        "l",
+        "xl",
+        "xxl",
+        "xxxl"
+      ]
+    },
+    "Product_category": {
+      "type": "enumeration",
+      "required": true,
+      "default": "all",
+      "enum": [
+        "all",
+        "Football",
+        "Sport de Combat",
+        "Gym"
+      ]
+    }
+  }
+}
