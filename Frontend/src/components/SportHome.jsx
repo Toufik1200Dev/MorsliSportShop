@@ -49,34 +49,34 @@ const whyChoose = [
 
 const heroSlides = [
   {
-    image: 'src/images/cardiopic.jpg',
+    image: '/images/cardiopic.jpg',
     text: 'Équipements de cardio',
   },
   {
-    image: 'src/images/gym.jpg',
+    image: '/images/gym.jpg',
     text: 'Tout matériel de musclulations',
   },
   {
-    image: 'src/images/crossfit.jpg',
+    image: '/images/crossfit.jpg',
     text: 'Équipements Crossfit & Street workout',
   },
   {
-    image: 'src/images/judo.jpg',
+    image: '/images/judo.jpg',
     text: 'Équipements de Judo, Aïkido, Karaté, Taekwondo',
   },
   {
-    image: 'src/images/kickbox.jpg',
+    image: '/images/kickbox.jpg',
     text: 'Kick-Boxing et Boxe Thaï !',
   },
 ];
 
 const additionalSlides = [
   {
-    image: 'src/images/football.jpg',
+    image: '/images/football.jpg',
     text: 'Équipements de Football',
   },
   {
-    image: 'src/images/stade.jpg',
+    image: '/images/stade.jpg',
     text: 'Équipements de Stade',
   },
 ];
@@ -339,98 +339,6 @@ export default function SportHome() {
         </Box>
       </Container>
 
-      {/* Categories Bar */}
-      <Container maxWidth="xl">
-        <Box sx={{ 
-          mt: { xs: 3, md: 6 },
-          py: { xs: 2, md: 3 },
-          px: { xs: 1, md: 2 },
-          background: 'linear-gradient(135deg, #0d47a1 0%, #1565c0 100%)',
-          borderRadius: { xs: 2, md: 3 },
-          boxShadow: '0 4px 20px 0 rgba(0,0,0,0.3)'
-        }}>
-          <Typography 
-            variant="h5" 
-            sx={{ 
-              color: '#fff', 
-              fontWeight: 700, 
-              mb: { xs: 2, md: 3 }, 
-              textAlign: 'center',
-              textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-              fontSize: { xs: '1.2rem', md: '1.5rem' }
-            }}
-          >
-            {getTranslation('categories', currentLanguage)}
-          </Typography>
-          <Stack 
-            direction="row" 
-            spacing={{ xs: 1, md: 3 }}
-            sx={{ 
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-              gap: { xs: 1, md: 2 }
-            }}
-          >
-            {[
-              { key: 'all', icon: <FitnessCenterIcon />, label: 'All Products', color: '#ffffff' },
-              { key: 'gym', icon: <FitnessCenterIcon />, label: 'Gym', color: '#9c27b0' },
-              { key: 'football', icon: <SportsSoccerIcon />, label: 'Football', color: '#4caf50' },
-              { key: 'sport de combat', icon: <SportsKabaddiIcon />, label: 'Sport de Combat', color: '#f44336' },
-              { key: 'cardio', icon: <HeartBrokenIcon />, label: 'Cardio', color: '#ff9800' }
-            ].map((category, index) => (
-              <Box
-                key={index}
-                onClick={() => handleCategoryClick(category.key)}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: { xs: 1, md: 2 },
-                  px: { xs: 2, md: 3 },
-                  py: { xs: 1.5, md: 2 },
-                  background: selectedCategory === category.key 
-                    ? 'rgba(255,255,255,0.25)' 
-                    : 'rgba(255,255,255,0.1)',
-                  borderRadius: { xs: 2, md: 3 },
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  minWidth: 'fit-content',
-                  border: selectedCategory === category.key 
-                    ? '2px solid rgba(255,255,255,0.6)' 
-                    : '1px solid rgba(255,255,255,0.2)',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.2)',
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 25px 0 rgba(0,0,0,0.3)',
-                    border: '2px solid rgba(255,255,255,0.4)'
-                  }
-                }}
-              >
-                <Box sx={{ 
-                  color: category.color, 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
-                }}>
-                  {React.cloneElement(category.icon, { sx: { fontSize: { xs: '1.5rem', md: '2rem' } } })}
-                </Box>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    color: '#fff', 
-                    fontWeight: 700,
-                    fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                    textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {category.label}
-                </Typography>
-              </Box>
-            ))}
-          </Stack>
-        </Box>
-      </Container>
-
       {/* Featured Products */}
       <Container maxWidth="xl">
         <Box id="products" sx={{ mt: { xs: 3, md: 6 }, px: { xs: 1, md: 2 } }}>
@@ -486,7 +394,6 @@ export default function SportHome() {
                     }}>
                       <CardMedia
                         component="img"
-                        height={{ xs: 140, sm: 160, md: 180 }}
                         image={
                           product.Product_img?.[0]?.url 
                             ? `${API_URL}${product.Product_img[0].url}`
@@ -495,7 +402,12 @@ export default function SportHome() {
                             : '/default-image.png'
                         }
                         alt={product.Product_name || 'Product'}
-                        sx={{ objectFit: 'cover', borderRadius: { xs: '16px 16px 0 0', md: '18px 18px 0 0' }, background: '#222' }}
+                        sx={{ 
+                          objectFit: 'cover', 
+                          borderRadius: { xs: '16px 16px 0 0', md: '18px 18px 0 0' }, 
+                          background: '#222',
+                          height: { xs: 140, sm: 160, md: 180 }
+                        }}
                       />
                       <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
                         <Typography variant="h6" sx={{ 
