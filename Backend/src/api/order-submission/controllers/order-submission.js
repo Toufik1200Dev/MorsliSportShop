@@ -45,6 +45,9 @@ module.exports = {
 
     } catch (error) {
       console.error('Order submission error:', error);
+      if (error.message === 'Google Sheets service is not configured.') {
+        return ctx.serviceUnavailable('Order submission is temporarily disabled due to a configuration issue.');
+      }
       return ctx.internalServerError('Failed to process order.');
     }
   },

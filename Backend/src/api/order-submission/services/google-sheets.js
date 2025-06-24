@@ -5,27 +5,35 @@ const { google } = require('googleapis');
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 
-// Parse the credentials from the environment variable
-let credentials;
-try {
-  credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
-} catch (error) {
-  console.error("Could not parse GOOGLE_CREDENTIALS_JSON:", error);
-  // Handle the error appropriately. For example, by throwing it
-  // or by setting credentials to null and handling that case below.
-  throw new Error("Invalid GOOGLE_CREDENTIALS_JSON environment variable.");
-}
-
 class GoogleSheetsService {
   constructor() {
-    this.auth = new google.auth.GoogleAuth({
-      credentials,
-      scopes: SCOPES,
-    });
-    this.sheets = google.sheets({ version: 'v4', auth: this.auth });
+    this.initialized = false;
+    const credentialsJson = process.env.GOOGLE_CREDENTIALS_JSON;
+
+    if (!credentialsJson) {
+      console.warn("GOOGLE_CREDENTIALS_JSON environment variable not set. Google Sheets service is disabled.");
+      return;
+    }
+    
+    try {
+      const credentials = JSON.parse(credentialsJson);
+      this.auth = new google.auth.GoogleAuth({
+        credentials,
+        scopes: SCOPES,
+      });
+      this.sheets = google.sheets({ version: 'v4', auth: this.auth });
+      this.initialized = true;
+      console.log("Google Sheets service initialized successfully.");
+    } catch (error) {
+      console.error("Could not parse GOOGLE_CREDENTIALS_JSON or initialize Google Sheets service:", error);
+    }
   }
 
   async appendRow(data) {
+    if (!this.initialized) {
+      throw new Error('Google Sheets service is not configured.');
+    }
+
     const resource = {
       values: [data],
     };
