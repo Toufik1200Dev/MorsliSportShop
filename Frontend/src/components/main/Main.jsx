@@ -91,12 +91,11 @@ const Main = () => {
   // Log all product image URLs for debugging
   if (products.length > 0) {
     const allProductImgUrls = products.map(product => {
-      const url = product.Product_img?.[0]?.url
-        ? (product.Product_img[0].url.startsWith('http')
-            ? product.Product_img[0].url
-            : `${API_URL}${product.Product_img[0].url}`)
-        : '/default-image.png';
-      return { id: product.id, name: product.Product_name, imgUrl: url };
+      const rawUrl = product.Product_img?.[0]?.url;
+      const imgUrl = rawUrl?.startsWith('http')
+        ? rawUrl
+        : rawUrl ? `${API_URL}${rawUrl}` : '/default-image.png';
+      return { id: product.id, name: product.Product_name, imgUrl: imgUrl };
     });
     console.log('All product image URLs:', allProductImgUrls);
   }
@@ -188,11 +187,10 @@ const Main = () => {
       >
         {getFilteredProducts().map(product => {
           console.log('Product:', product);
-          const imgUrl = product.Product_img?.[0]?.url
-            ? (product.Product_img[0].url.startsWith('http')
-                ? product.Product_img[0].url
-                : `${API_URL}${product.Product_img[0].url}`)
-            : '/default-image.png';
+          const rawUrl = product.Product_img?.[0]?.url;
+          const imgUrl = rawUrl?.startsWith('http')
+            ? rawUrl
+            : rawUrl ? `${API_URL}${rawUrl}` : '/default-image.png';
           console.log('Image URL for product', product.id, ':', imgUrl);
           return (
             <div

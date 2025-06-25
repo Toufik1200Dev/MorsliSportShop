@@ -19,12 +19,9 @@ export const productApi = createApi({
     getProducts: builder.query({
       query: () => `products?populate=*`,
     }),
-    getCategories: builder.query({
-      query: () => `categories`,
-    }),
   }),
 })
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
-export const { useGetProductsQuery, useGetCategoriesQuery } = productApi
+export const { useGetProductsQuery } = productApi
