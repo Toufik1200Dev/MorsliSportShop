@@ -19,14 +19,14 @@ import Contact from "./components/Contact";
 import ClientReviews from "./components/ClientReviews";
 
 // @ts-ignore
-const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:1337";
+const API_URL = import.meta.env.VITE_BASE_URL || "https://morsli-sport-shop.onrender.com";
 
 function App() {
   const [theme, colorMode] = useMode();
 
   useEffect(() => {
     const keepAlive = () => {
-      fetch(`${API_URL}/api/categories`) // A lightweight endpoint
+      fetch(`${API_URL}/api/products`) // A lightweight endpoint
         .then(res => {
           if (res.ok) {
             console.log('Backend ping successful, server is awake.');
@@ -75,7 +75,6 @@ function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/avis-client" element={<ClientReviews />} />
               </Routes>
-              <Main />
               <Footer />
             </Box>
           </BrowserRouter>

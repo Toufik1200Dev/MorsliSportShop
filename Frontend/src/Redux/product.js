@@ -1,5 +1,10 @@
+/**
+ * @typedef {{ VITE_BASE_URL?: string }} ImportMetaEnv
+ * @typedef {{ env: ImportMetaEnv }} ImportMeta
+ */
+
 // @ts-ignore
-const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:1337";
+const API_URL = "https://morsli-sport-shop.onrender.com";
 console.log('RTK Query base URL:', API_URL);
 
 // Need to use the React-specific entry point to import createApi

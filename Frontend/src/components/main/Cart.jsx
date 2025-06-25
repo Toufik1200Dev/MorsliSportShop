@@ -6,7 +6,7 @@ import { Box, Typography, Button, Stack, IconButton, TextField, Container, Grid,
 import { DeleteOutline } from '@mui/icons-material';
 
 // @ts-ignore
-const API_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:1337';
+const API_URL = import.meta.env.VITE_BASE_URL || 'https://morsli-sport-shop.onrender.com';
 
 const Cart = () => {
   const cartItems = useSelector(

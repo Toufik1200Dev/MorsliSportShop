@@ -20,7 +20,7 @@ import ProductDetails from './main/ProductDetails';
 import SportsKabaddiIcon from '@mui/icons-material/SportsKabaddi';
 import HeartBrokenIcon from '@mui/icons-material/HeartBroken';
 
-const API_URL = "http://localhost:1337";
+const API_URL = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_BASE_URL) ? import.meta.env.VITE_BASE_URL : "https://morsli-sport-shop.onrender.com";
 
 const reviews = [
   {
@@ -259,12 +259,7 @@ export default function SportHome() {
                       <img 
                         src={slide.image} 
                         alt="Sport Equipment" 
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          display: 'block'
-                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                       />
                       <Box sx={{
                         position: 'absolute',
@@ -312,12 +307,7 @@ export default function SportHome() {
                   <img 
                     src={slide.image} 
                     alt="Sport Equipment" 
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block'
-                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <Box sx={{
                     position: 'absolute',
@@ -347,168 +337,82 @@ export default function SportHome() {
         </Box>
       </Container>
 
-      {/* Featured Products */}
-      <Container maxWidth="xl">
-        <Box id="products" sx={{ mt: { xs: 3, md: 6 }, px: { xs: 1, md: 2 } }}>
-          <Typography variant="h4" sx={{ 
-            fontWeight: 700, 
-            mb: { xs: 2, md: 3 }, 
-            color: '#2196f3',
-            fontSize: { xs: '1.5rem', md: '2rem' }
-          }}>
-            {selectedCategory === 'all' 
-              ? getTranslation('selectedProducts', currentLanguage)
-              : `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Products`
-            }
-          </Typography>
-          
-          {isLoading && (
-            <Typography variant="h6" sx={{ textAlign: 'center', color: '#fff' }}>
-              Loading products...
-            </Typography>
-          )}
-          
-          {error && (
-            <Typography variant="h6" sx={{ textAlign: 'center', color: '#e94560' }}>
-              Error loading products. Please try again later.
-            </Typography>
-          )}
-          
-          {!isLoading && !error && featuredProducts.length === 0 && (
-            <Typography variant="h6" sx={{ textAlign: 'center', color: '#fff' }}>
-              No products available at the moment.
-            </Typography>
-          )}
-          
-          {!isLoading && !error && featuredProducts.length > 0 && (
-            <Grid container spacing={{ xs: 2, md: 3 }} justifyContent="center">
-              {featuredProducts.map((product) => {
-                // Debug: Log each product
-                console.log('Product:', product);
-                
-                return (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                    <Card sx={{
-                      background: '#181818',
-                      color: '#fff',
-                      borderRadius: { xs: 2, md: 3 },
-                      boxShadow: '0 4px 24px 0 rgba(0,0,0,0.18)',
-                      transition: 'transform 0.2s, box-shadow 0.2s',
-                      '&:hover': {
-                        transform: 'scale(1.04)',
-                        boxShadow: '0 8px 32px 0 #1976d2',
-                      },
-                      cursor: 'pointer',
-                    }}>
-                      <CardMedia
-                        component="img"
-                        image={
-                          product.Product_img?.[0]?.url 
-                            ? `${API_URL}${product.Product_img[0].url}`
-                            : product.Product_img?.[0]?.formats?.medium?.url
-                            ? `${API_URL}${product.Product_img[0].formats.medium.url}`
-                            : '/default-image.png'
-                        }
-                        alt={product.Product_name || 'Product'}
-                        sx={{ 
-                          objectFit: 'cover', 
-                          borderRadius: { xs: '16px 16px 0 0', md: '18px 18px 0 0' }, 
-                          background: '#222',
-                          height: { xs: 140, sm: 160, md: 180 }
-                        }}
-                      />
-                      <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
-                        <Typography variant="h6" sx={{ 
-                          fontWeight: 700,
-                          fontSize: { xs: '1rem', md: '1.1rem' }
-                        }}>
-                          {product.Product_name || 'Product Name'}
-                        </Typography>
-                        <Typography variant="body2" sx={{ 
-                          color: '#2196f3', 
-                          fontWeight: 600,
-                          fontSize: { xs: '0.9rem', md: '1rem' }
-                        }}>
-                          {product.Product_price || 0} DA
-                        </Typography>
-                        <Typography variant="body2" sx={{ 
-                          color: '#b8b8b8', 
-                          mb: 1,
-                          fontSize: { xs: '0.8rem', md: '0.9rem' }
-                        }}>
-                          {product.Product_category || 'Category'}
-                        </Typography>
-                        {product.Product_size && (
-                          <Typography variant="body2" sx={{ 
-                            color: '#b8b8b8', 
-                            mb: 1,
-                            fontSize: { xs: '0.8rem', md: '0.9rem' }
-                          }}>
-                            Size: {product.Product_size}
-                          </Typography>
-                        )}
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          sx={{ 
-                            borderColor: '#2196f3', 
-                            color: '#2196f3', 
-                            fontWeight: 700, 
-                            mt: 1, 
-                            fontSize: { xs: '0.8rem', md: '0.9rem' },
-                            '&:hover': { background: '#2196f3', color: '#181818' } 
-                          }}
-                          onClick={() => handleClickOpen(product)}
-                        >
-                          {getTranslation('details', currentLanguage)}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          )}
-        </Box>
-      </Container>
-
-      {/* Why Choose Us */}
+      {/* Pourquoi nous choisir ? */}
       <Container maxWidth="xl">
         <Box sx={{ mt: { xs: 4, md: 8 }, px: { xs: 1, md: 2 } }}>
-          <Typography variant="h4" sx={{ 
-            fontWeight: 700, 
-            mb: { xs: 2, md: 3 }, 
-            color: '#2196f3',
-            fontSize: { xs: '1.5rem', md: '2rem' }
-          }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: { xs: 2, md: 3 }, color: '#2196f3', fontSize: { xs: '1.5rem', md: '2rem' }, textAlign: 'center', letterSpacing: 1 }}>
             Pourquoi nous choisir ?
           </Typography>
-          <Grid container spacing={{ xs: 2, md: 3 }} justifyContent="center">
+          <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center">
             {whyChoose.map((item, idx) => (
               <Grid item xs={12} sm={6} md={3} key={idx}>
-                <Box sx={{
-                  background: '#111',
-                  borderRadius: { xs: 2, md: 3 },
-                  p: { xs: 2, md: 3 },
-                  textAlign: 'center',
-                  boxShadow: '0 2px 12px 0 rgba(0,0,0,0.12)',
-                  color: '#fff',
-                  minHeight: { xs: 120, md: 140 },
-                }}>
-                  {React.cloneElement(item.icon, { 
-                    sx: { 
-                      fontSize: { xs: '2rem', md: 'large' }, 
-                      color: '#1976d2' 
-                    } 
-                  })}
-                  <Typography variant="h6" sx={{ 
-                    mt: { xs: 1, md: 2 }, 
-                    fontWeight: 600,
-                    fontSize: { xs: '1rem', md: '1.1rem' }
-                  }}>
+                <Box
+                  sx={{
+                    background: `linear-gradient(135deg, ${['#1976d2', '#43cea2', '#f7971e', '#e94560'][idx % 4]} 0%, #181818 100%)`,
+                    borderRadius: 4,
+                    p: { xs: 3, md: 4 },
+                    textAlign: 'center',
+                    boxShadow: '0 6px 32px 0 rgba(25,118,210,0.10)',
+                    color: '#fff',
+                    minHeight: { xs: 140, md: 180 },
+                    position: 'relative',
+                    overflow: 'hidden',
+                    transition: 'transform 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      transform: 'translateY(-8px) scale(1.04)',
+                      boxShadow: `0 12px 40px 0 ${['#1976d2', '#43cea2', '#f7971e', '#e94560'][idx % 4]}55`,
+                    },
+                    animation: `fadeInUp 0.7s ${0.1 * idx + 0.2}s both`,
+                    '@keyframes fadeInUp': {
+                      from: { opacity: 0, transform: 'translate3d(0, 40px, 0)' },
+                      to: { opacity: 1, transform: 'none' },
+                    },
+                  }}
+                >
+                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {React.cloneElement(item.icon, {
+                      sx: { fontSize: 48, color: '#fff', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.18))' }
+                    })}
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1.1rem', md: '1.25rem' }, letterSpacing: 0.5, mb: 1, textShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
                     {item.label}
                   </Typography>
                 </Box>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      </Container>
+
+      {/* Produits */}
+      <Container maxWidth="xl" id="products-section">
+        <Box sx={{ mt: { xs: 4, md: 8 }, px: { xs: 1, md: 2 } }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: { xs: 2, md: 3 }, color: '#2196f3', fontSize: { xs: '1.5rem', md: '2rem' } }}>
+            Produits
+          </Typography>
+          <Box sx={{ display: 'flex', overflowX: 'auto', gap: 2, py: 2, mb: 3, '&::-webkit-scrollbar': { height: 4 }, '&::-webkit-scrollbar-thumb': { background: '#2196f3', borderRadius: 2 } }}>
+            <Button variant={selectedCategory === 'all' ? 'contained' : 'outlined'} color="primary" onClick={() => setSelectedCategory('all')} sx={{ minWidth: 120 }}>Tous</Button>
+            {Array.from(new Set(allProducts.map(p => p.Product_category).filter(Boolean))).map(cat => (
+              <Button key={cat} variant={selectedCategory === cat ? 'contained' : 'outlined'} color="primary" onClick={() => setSelectedCategory(cat)} sx={{ minWidth: 120 }}>{cat}</Button>
+            ))}
+          </Box>
+          <Grid container spacing={{ xs: 2, md: 3 }} justifyContent="center">
+            {isLoading && (<Typography variant="h6" sx={{ textAlign: 'center', color: '#fff', width: '100%' }}>Loading products...</Typography>)}
+            {error && (<Typography variant="h6" sx={{ textAlign: 'center', color: '#e94560', width: '100%' }}>Error loading products. Please try again later.</Typography>)}
+            {!isLoading && !error && getFilteredProducts().length === 0 && (<Typography variant="h6" sx={{ textAlign: 'center', color: '#fff', width: '100%' }}>Aucun produit trouvé.</Typography>)}
+            {!isLoading && !error && getFilteredProducts().map(product => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+                <Card sx={{ background: '#181818', color: '#fff', borderRadius: { xs: 2, md: 3 }, boxShadow: '0 4px 24px 0 rgba(0,0,0,0.18)', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'scale(1.04)', boxShadow: '0 8px 32px 0 #1976d2' }, cursor: 'pointer' }}>
+                  <CardMedia component="img" image={product.Product_img?.[0]?.url ? `${API_URL}${product.Product_img[0].url}` : '/default-image.png'} alt={product.Product_name || 'Product'} sx={{ objectFit: 'cover', borderRadius: { xs: '16px 16px 0 0', md: '18px 18px 0 0' }, background: '#222', height: { xs: 140, sm: 160, md: 180 } }} />
+                  <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1rem', md: '1.1rem' } }}>{product.Product_name || 'Product Name'}</Typography>
+                    <Typography variant="body2" sx={{ color: '#2196f3', fontWeight: 600, fontSize: { xs: '0.9rem', md: '1rem' } }}>{product.Product_price || 0} DA</Typography>
+                    <Typography variant="body2" sx={{ color: '#b8b8b8', mb: 1, fontSize: { xs: '0.8rem', md: '0.9rem' } }}>{product.Product_category || 'Category'}</Typography>
+                    {product.Product_size && (<Typography variant="body2" sx={{ color: '#b8b8b8', mb: 1, fontSize: { xs: '0.8rem', md: '0.9rem' } }}>Taille: {product.Product_size}</Typography>)}
+                    <Button variant="outlined" size="small" sx={{ borderColor: '#2196f3', color: '#2196f3', fontWeight: 700, mt: 1, fontSize: { xs: '0.8rem', md: '0.9rem' }, '&:hover': { background: '#2196f3', color: '#181818' } }} onClick={() => handleClickOpen(product)}>{getTranslation('details', currentLanguage)}</Button>
+                  </CardContent>
+                </Card>
               </Grid>
             ))}
           </Grid>

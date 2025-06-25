@@ -62,8 +62,8 @@ const OrderForm = () => {
     };
 
     try {
-      // @ts-ignore - Vite environment variable
-      const response = await fetch(`http://localhost:1337/api/order-submission`, {
+      const API_URL = import.meta.env.VITE_BASE_URL || "https://morsli-sport-shop.onrender.com";
+      const response = await fetch(`${API_URL}/api/order-submission`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -94,83 +94,7 @@ export default function Header3() {
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>
       <Stack spacing={2}>
-        {/* Top Row - Logo and Search */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          flexDirection: { xs: 'column', md: 'row' },
-          gap: 2
-        }}>
-          {/* Logo */}
-          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <img 
-                src="/images/MorsliSportLogo.png" 
-                alt="Morsli Sport Logo" 
-                style={{ 
-                  height: "50px", 
-                  width: "100px", 
-                  objectFit: 'contain' 
-                }} 
-              />
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  fontWeight: 900, 
-                  color: '#1976d2',
-                  fontSize: { xs: '1.5rem', md: '2rem' }
-                }}
-              >
-                Morsli Sport
-              </Typography>
-            </Stack>
-          </Link>
-
-          {/* Search Bar */}
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            width: { xs: '100%', md: '50%' },
-            maxWidth: 600,
-            bgcolor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5',
-            borderRadius: 2,
-            px: 2,
-            py: 1
-          }}>
-            <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
-            <InputBase
-              placeholder={getTranslation('searchPlaceholder', currentLanguage)}
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              sx={{ flex: 1, fontSize: '1rem' }}
-            />
-          </Box>
-
-          {/* User Actions */}
-          <Stack direction="row" spacing={1} alignItems="center">
-            {/* Cart */}
-            <Link to="/cart" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <IconButton color="inherit">
-                <Badge badgeContent={cartItemCount} color="error">
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
-            </Link>
-
-            {/* User Menu */}
-            <IconButton
-              onClick={handleUserMenuClick}
-              color="inherit"
-            >
-              <Avatar sx={{ width: 32, height: 32, bgcolor: '#1976d2' }}>
-                <PersonIcon />
-              </Avatar>
-            </IconButton>
-          </Stack>
-        </Box>
-
-        {/* Bottom Row - Categories and Navigation */}
+        {/* Only Navigation Row: Categories, Client Reviews, Contact Us */}
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -254,231 +178,28 @@ export default function Header3() {
               </MenuItem>
             </Menu>
           </Box>
-
           {/* Navigation Links */}
-          {!useMediaQuery("(min-width:600px)") ? (
-            <IconButton 
-              onClick={toggleDrawer("left", true)}
-              sx={{ 
-                width: { xs: '100%', sm: 'auto' },
-                justifyContent: { xs: 'flex-end', sm: 'center' }
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
-          ) : (
-            <Stack 
-              direction="row" 
-              spacing={3}
-              sx={{ 
-                display: { xs: 'none', sm: 'flex' }
-              }}
-            >
-              <Link to="/avis-client" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Typography sx={{ cursor: "pointer", fontWeight: 500 }} variant="body1">
-                  {getTranslation('clientReviews', currentLanguage)}
-                </Typography>
-              </Link>
-              <Link to="/contact" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <Typography sx={{ cursor: "pointer", fontWeight: 500 }} variant="body1">
-                  {getTranslation('contactUs', currentLanguage)}
-                </Typography>
-              </Link>
-            </Stack>
-          )}
-        </Box>
-
-        {/* Categories Bar */}
-        <Box sx={{ 
-          mt: 2,
-          py: 2,
-          px: 1,
-          background: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)',
-          borderRadius: 2,
-          boxShadow: '0 4px 20px 0 rgba(25,118,210,0.15)'
-        }}>
           <Stack 
             direction="row" 
-            spacing={2} 
+            spacing={3}
             sx={{ 
-              overflowX: 'auto',
-              '&::-webkit-scrollbar': { height: 4 },
-              '&::-webkit-scrollbar-track': { background: 'rgba(255,255,255,0.1)', borderRadius: 2 },
-              '&::-webkit-scrollbar-thumb': { background: 'rgba(255,255,255,0.3)', borderRadius: 2 },
-              '&::-webkit-scrollbar-thumb:hover': { background: 'rgba(255,255,255,0.5)' }
+              display: { xs: 'none', sm: 'flex' }
             }}
           >
-            {[
-              { icon: <SportsSoccerIcon />, label: getTranslation('football', currentLanguage), color: '#4caf50' },
-              { icon: <SportsKabaddiIcon />, label: getTranslation('combatSports', currentLanguage), color: '#f44336' },
-              { icon: <HeartBrokenIcon />, label: getTranslation('cardio', currentLanguage), color: '#ff9800' },
-              { icon: <FitnessCenterIcon />, label: getTranslation('musculation', currentLanguage), color: '#9c27b0' },
-              { icon: <SportsSoccerIcon />, label: 'Tennis', color: '#00bcd4' },
-              { icon: <FitnessCenterIcon />, label: 'Yoga', color: '#795548' },
-              { icon: <SportsKabaddiIcon />, label: 'Boxing', color: '#607d8b' },
-              { icon: <HeartBrokenIcon />, label: 'Running', color: '#e91e63' }
-            ].map((category, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 1,
-                  background: 'rgba(255,255,255,0.1)',
-                  borderRadius: 2,
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  minWidth: 'fit-content',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  '&:hover': {
-                    background: 'rgba(255,255,255,0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px 0 rgba(0,0,0,0.2)',
-                    border: '1px solid rgba(255,255,255,0.4)'
-                  }
-                }}
-              >
-                <Box sx={{ 
-                  color: category.color, 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
-                }}>
-                  {category.icon}
-                </Box>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    color: '#fff', 
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {category.label}
-                </Typography>
-              </Box>
-            ))}
+            <Link to="/avis-client" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Typography sx={{ cursor: "pointer", fontWeight: 500 }} variant="body1">
+                {getTranslation('clientReviews', currentLanguage)}
+              </Typography>
+            </Link>
+            <Link to="/contact" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <Typography sx={{ cursor: "pointer", fontWeight: 500 }} variant="body1">
+                {getTranslation('contactUs', currentLanguage)}
+              </Typography>
+            </Link>
           </Stack>
         </Box>
+        {/* Categories Bar (if any) can be here if needed */}
       </Stack>
-
-      {/* User Menu */}
-      <Menu
-        anchorEl={userMenuAnchor}
-        open={userMenuOpen}
-        onClose={handleUserMenuClose}
-        slotProps={{
-          paper: {
-            sx: {
-              minWidth: 200,
-              bgcolor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5',
-              borderRadius: 2,
-              mt: 1
-            },
-          },
-        }}
-      >
-        <MenuItem onClick={handleUserMenuClose}>
-          <ListItemIcon>
-            <PersonIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={getTranslation('myProfile', currentLanguage)} />
-        </MenuItem>
-        <Divider />
-        <MenuItem onClick={handleUserMenuClose}>
-          <ListItemIcon>
-            <PersonIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={getTranslation('login', currentLanguage)} />
-        </MenuItem>
-        <MenuItem onClick={handleUserMenuClose}>
-          <ListItemIcon>
-            <PersonIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={getTranslation('register', currentLanguage)} />
-        </MenuItem>
-      </Menu>
-
-      {/* Mobile Drawer */}
-      <Drawer
-        anchor={"left"}
-        open={state["left"]}
-        onClose={toggleDrawer("left", false)}
-        sx={{
-          ".MuiPaper-root": { 
-            height: "100%",
-            bgcolor: theme.palette.mode === 'dark' ? "#151e3d" : "#fff",
-            width: { xs: '100%', sm: 300 }
-          }
-        }}
-      >
-        <Box
-          sx={{
-            maxWidth: 300,
-            mx: "auto",
-            mt: 6,
-            position: "relative",
-            pt: 10,
-            px: 2
-          }}
-        >
-          <IconButton
-            sx={{
-              ":hover": { rotate: "180deg", transition: "0.3s", color: "red" },
-              position: "absolute",
-              right: 0,
-              top: -40,
-            }}
-            onClick={toggleDrawer("left", false)}
-          >
-            <Close />
-          </IconButton>
-
-          {[
-            {
-              Page1: getTranslation('pages', currentLanguage),
-              subPage1: [
-                { name: getTranslation('home', currentLanguage), link: "/" },
-                { name: getTranslation('contactUs', currentLanguage), link: "/contact" },
-                { name: getTranslation('customerReviews', currentLanguage), link: "/avis-client" }
-              ],
-            },
-          ].map((item) => {
-            return (
-              <Accordion
-                key={item.Page1}
-                elevation={0}
-                sx={{ bgcolor: "initial" }}
-              >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel1-content"
-                  id="panel1-header"
-                >
-                  <Typography>{item.Page1}</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <List sx={{ py: 0, my: 0 }}>
-                    {item.subPage1.map((link) => {
-                      return (
-                        <ListItem key={link.name}>
-                          <ListItemButton component={Link} to={link.link}>
-                            <ListItemText primary={link.name} />
-                          </ListItemButton>
-                        </ListItem>
-                      );
-                    })}
-                  </List>
-                </AccordionDetails>
-              </Accordion>
-            );
-          })}
-        </Box>
-      </Drawer>
     </Container>
   );
 }

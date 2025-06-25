@@ -67,7 +67,7 @@ export default function Hero() {
   ];
 
   return (
-    <Container>
+    <Container sx={{ maxWidth: '80vw', mx: 'auto' }}>
       <Box
         sx={{
           mt: { xs: 1, sm: 2.5 },

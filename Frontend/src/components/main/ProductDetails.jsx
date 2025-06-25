@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../Redux/cart';
 
-const API_URL = "http://localhost:1337";
+const API_URL = import.meta.env.VITE_BASE_URL || "https://morsli-sport-shop.onrender.com";
 
 export default function ProductDetails({ product, onClose }) {
   if (!product) return null;
@@ -148,7 +148,7 @@ export default function ProductDetails({ product, onClose }) {
             zIndex: 2,
             background: 'rgba(22,33,62,0.95)'
           }} 
-          src={`http://localhost:1337${images[selectedImage]?.url}`}
+          src={images[selectedImage]?.url ? `${API_URL}${images[selectedImage].url}` : '/default-image.png'}
           alt={product.Product_name}
           onClick={() => setIsZoomed(!isZoomed)}
         />

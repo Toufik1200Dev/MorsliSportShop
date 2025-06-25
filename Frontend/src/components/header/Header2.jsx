@@ -170,120 +170,117 @@ export default function Header2() {
   }, [showSearchResults]);
 
   return (
-    <Container sx={{ my: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-      
-      <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
-            <img src="/images/MorsliSportLogo.png" alt="Morsli Sport Logo" style={{ height: "50px", width: "100px", objectFit: 'contain' }} />
-            <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontWeight: 'bold' }}>
-              Morsli Sport
-            </Typography>
-        </Stack>
-      </Link>
-
-      <Box sx={{ position: "relative" }}>
-        <Search>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder="Search products..."
-            inputProps={{ "aria-label": "search" }}
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </Search>
-        
-        {showSearchResults && filteredProducts.length > 0 && (
-          <SearchResults onClick={(e) => e.stopPropagation()}>
-            <List>
-              {filteredProducts.slice(0, 5).map((product) => (
-                <ListItem key={product.id} disablePadding>
-                  <ListItemButton onClick={() => handleSearchResultClick(product)}>
-                    <ListItemText
-                      primary={product.Product_name}
-                      secondary={`${product.Product_category} - ${product.Product_price} DA`}
-                    />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          </SearchResults>
-        )}
-      </Box>
-
-      <Stack direction={"row"} alignItems={"center"}>
-        <IconButton onClick={handleUserMenuOpen}>
-          <PersonOutlineOutlined />
-        </IconButton>
-
-        <Menu
-          anchorEl={userAnchorEl}
-          open={Boolean(userAnchorEl)}
-          onClose={handleUserMenuClose}
-          PaperProps={{
-            sx: {
-              mt: 1,
-              minWidth: 200,
-              boxShadow: theme.shadows[3],
-            }
-          }}
-        >
-          {!isLoggedIn ? (
-            <>
-              <MenuItem onClick={handleUserMenuClose}>
-                <ListItemIcon>
-                  <Login fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Login" />
-              </MenuItem>
-              <MenuItem onClick={handleUserMenuClose}>
-                <ListItemIcon>
-                  <PersonAdd fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Register" />
-              </MenuItem>
-            </>
-          ) : (
-            <>
-              <MenuItem onClick={handleUserMenuClose}>
-                <ListItemIcon>
-                  <AccountCircle fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="My Profile" />
-              </MenuItem>
-              <MenuItem onClick={handleUserMenuClose}>
-                <ListItemIcon>
-                  <Favorite fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Wishlist" />
-              </MenuItem>
-              <MenuItem onClick={handleUserMenuClose}>
-                <ListItemIcon>
-                  <Settings fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Settings" />
-              </MenuItem>
-              <Divider />
-              <MenuItem onClick={handleUserMenuClose}>
-                <ListItemIcon>
-                  <Logout fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="Logout" />
-              </MenuItem>
-            </>
-          )}
-        </Menu>
-
-        <Link to="/cart">
-          <IconButton aria-label="cart">
-            <StyledBadge badgeContent={cartItems ? cartItems.length : 0} color="primary">
-              <ShoppingCart />
-            </StyledBadge>
+    <Container sx={{ my: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* Left: Logo + Shop Name */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+            <img src="/images/MorsliSportLogo.png" alt="Logo" style={{ height: 40, marginRight: 8 }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 1 }}>Morsli Sport</Typography>
+          </Link>
+        </Box>
+        {/* Center: Search Bar */}
+        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+          <Search>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <StyledInputBase
+              placeholder="Search products..."
+              inputProps={{ "aria-label": "search" }}
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onClick={(e) => e.stopPropagation()}
+            />
+            {showSearchResults && filteredProducts.length > 0 && (
+              <SearchResults onClick={(e) => e.stopPropagation()}>
+                <List>
+                  {filteredProducts.slice(0, 5).map((product) => (
+                    <ListItem key={product.id} disablePadding>
+                      <ListItemButton onClick={() => handleSearchResultClick(product)}>
+                        <ListItemText
+                          primary={product.Product_name}
+                          secondary={`${product.Product_category} - ${product.Product_price} DA`}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </SearchResults>
+            )}
+          </Search>
+        </Box>
+        {/* Right: Profile + Cart */}
+        <Stack direction={"row"} alignItems={"center"} gap={1}>
+          <IconButton onClick={handleUserMenuOpen}>
+            <PersonOutlineOutlined />
           </IconButton>
-        </Link>
-      </Stack>
+          <Menu
+            anchorEl={userAnchorEl}
+            open={Boolean(userAnchorEl)}
+            onClose={handleUserMenuClose}
+            PaperProps={{
+              sx: {
+                mt: 1,
+                minWidth: 200,
+                boxShadow: theme.shadows[3],
+              }
+            }}
+          >
+            {!isLoggedIn ? (
+              <>
+                <MenuItem onClick={handleUserMenuClose}>
+                  <ListItemIcon>
+                    <Login fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Login" />
+                </MenuItem>
+                <MenuItem onClick={handleUserMenuClose}>
+                  <ListItemIcon>
+                    <PersonAdd fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Register" />
+                </MenuItem>
+              </>
+            ) : (
+              <>
+                <MenuItem onClick={handleUserMenuClose}>
+                  <ListItemIcon>
+                    <AccountCircle fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="My Profile" />
+                </MenuItem>
+                <MenuItem onClick={handleUserMenuClose}>
+                  <ListItemIcon>
+                    <Favorite fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Wishlist" />
+                </MenuItem>
+                <MenuItem onClick={handleUserMenuClose}>
+                  <ListItemIcon>
+                    <Settings fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Settings" />
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleUserMenuClose}>
+                  <ListItemIcon>
+                    <Logout fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Logout" />
+                </MenuItem>
+              </>
+            )}
+          </Menu>
+          <Link to="/cart">
+            <IconButton aria-label="cart">
+              <StyledBadge badgeContent={cartItems ? cartItems.length : 0} color="primary">
+                <ShoppingCart />
+              </StyledBadge>
+            </IconButton>
+          </Link>
+        </Stack>
+      </Box>
     </Container>
   );
 }
