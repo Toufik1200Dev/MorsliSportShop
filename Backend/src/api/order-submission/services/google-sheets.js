@@ -1,5 +1,7 @@
 'use strict';
 const { google } = require('googleapis');
+const fs = require('fs');
+const path = require('path');
 
 // NOTE: You will need to provide your own credentials and spreadsheet ID
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
@@ -8,24 +10,23 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 class GoogleSheetsService {
   constructor() {
     this.initialized = false;
-    const credentialsJson = process.env.GOOGLE_CREDENTIALS_JSON;
-
-    if (!credentialsJson) {
-      console.warn("GOOGLE_CREDENTIALS_JSON environment variable not set. Google Sheets service is disabled.");
+    let credentials = null;
+    try {
+      const credentialsPath = path.resolve(__dirname, '../../../../config/google-credentials.json');
+      credentials = JSON.parse(fs.readFileSync(credentialsPath, 'utf8'));
+    } catch (error) {
+      console.warn("Could not read google-credentials.json. Google Sheets service is disabled.", error);
       return;
     }
-    
     try {
-      const credentials = JSON.parse(credentialsJson);
       this.auth = new google.auth.GoogleAuth({
         credentials,
         scopes: SCOPES,
       });
       this.sheets = google.sheets({ version: 'v4', auth: this.auth });
       this.initialized = true;
-      console.log("Google Sheets service initialized successfully.");
     } catch (error) {
-      console.error("Could not parse GOOGLE_CREDENTIALS_JSON or initialize Google Sheets service:", error);
+      console.error("Could not initialize Google Sheets service:", error);
     }
   }
 

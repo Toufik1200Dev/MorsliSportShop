@@ -33,18 +33,6 @@
         "files"
       ]
     },
-    "Product_size": {
-      "type": "enumeration",
-      "enum": [
-        "xs",
-        "s",
-        "m",
-        "l",
-        "xl",
-        "xxl",
-        "xxxl"
-      ]
-    },
     "Product_category": {
       "type": "enumeration",
       "required": true,
@@ -55,6 +43,33 @@
         "Sport de Combat",
         "Gym"
       ]
+    },
+    "Product_sizes": {
+      "type": "customField",
+      "customField": "plugin::multi-select.multi-select",
+      "default": "\n",
+      "options": [
+        "XS",
+        "S",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "4XL",
+        "5XL",
+        "6XL",
+        "150cm",
+        "155cm",
+        "160cm",
+        "165cm",
+        "170cm",
+        "175cm",
+        "180cm",
+        "185cm",
+        "190cm"
+      ],
+      "min": 2,
+      "max": 100
     }
   }
 }

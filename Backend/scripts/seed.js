@@ -4,23 +4,24 @@ const fs = require('fs-extra');
 const path = require('path');
 const mime = require('mime-types');
 const { categories, authors, articles, global, about } = require('../data/data.json');
+const { faker } = require('@faker-js/faker');
+
+const strapi = require('@strapi/strapi');
 
 async function seedExampleApp() {
   const shouldImportSeedData = await isFirstRun();
 
   if (shouldImportSeedData) {
     try {
-      console.log('Setting up the template...');
-      await importSeedData();
-      console.log('Ready to go');
+      await strapi().load();
+      
+      // Ready to go
     } catch (error) {
-      console.log('Could not import seed data');
-      console.error(error);
+      // Could not import seed data
+      process.exit(0);
     }
   } else {
-    console.log(
-      'Seed data has already been imported. We cannot reimport unless you clear your database first.'
-    );
+    // Seed data has already been imported. We cannot reimport unless you clear your database first.
   }
 }
 

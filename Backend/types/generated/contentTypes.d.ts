@@ -633,9 +633,38 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     Product_price: Schema.Attribute.BigInteger &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'1000'>;
-    Product_size: Schema.Attribute.Enumeration<
-      ['xs', 's', 'm', 'l', 'xl', 'xxl', 'xxxl']
-    >;
+    Product_sizes: Schema.Attribute.JSON &
+      Schema.Attribute.CustomField<
+        'plugin::multi-select.multi-select',
+        [
+          'XS',
+          'S',
+          'L',
+          'XL',
+          'XXL',
+          '3XL',
+          '4XL',
+          '5XL',
+          '6XL',
+          '150cm',
+          '155cm',
+          '160cm',
+          '165cm',
+          '170cm',
+          '175cm',
+          '180cm',
+          '185cm',
+          '190cm',
+        ]
+      > &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 100;
+          min: 2;
+        },
+        number
+      > &
+      Schema.Attribute.DefaultTo<'\n'>;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &

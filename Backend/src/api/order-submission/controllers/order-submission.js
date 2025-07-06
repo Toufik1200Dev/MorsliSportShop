@@ -20,6 +20,14 @@ module.exports = {
       // Format delivery type for sheet
       const livraison = deliveryType === 'domicile' ? 'a domicile' : 'bureau';
 
+      // Log order data to console for testing
+      console.log('=== ORDER SUBMITTED ===');
+      console.log('Order Details:', orderDetails);
+      console.log('Cart Items:', cartItems);
+      console.log('Order DateTime:', orderDateTime);
+      console.log('========================');
+
+      // Send to Google Sheets
       for (const item of cartItems) {
         const totalPrice = (parseInt(item.Product_price) * item.quantity) + deliveryPrice;
         const rowData = [
@@ -35,12 +43,12 @@ module.exports = {
           livraison,        // livraison
           totalPrice        // total price (product total + delivery)
         ];
-        console.log('Appending row to Google Sheets:', rowData);
         await sheetsService.appendRow(rowData);
       }
 
       return ctx.send({
-        message: 'Order successfully submitted to Google Sheet.',
+        success: true,
+        message: 'Order submitted successfully'
       });
 
     } catch (error) {
