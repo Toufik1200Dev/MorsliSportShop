@@ -35,6 +35,7 @@ module.exports = {
           fullName,         // nom et prenom
           item.quantity,    // quantité
           item.selectedSize || '', // la taille
+          item.selectedColor || '', // la couleur
           phone,            // numero de telephone
           wilaya,           // wilaya
           baladiya,         // baladiya

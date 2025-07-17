@@ -70,6 +70,24 @@
       ],
       "min": 2,
       "max": 100
+    },
+    "Product_color": {
+      "type": "customField",
+      "customField": "plugin::multi-select.multi-select",
+      "default": "[]",
+      "options": [
+        "Red",
+        "Orange",
+        "Yellow",
+        "Green",
+        "Blue",
+        "Violet",
+        "Black",
+        "White",
+        "Gray",
+        "Brown",
+        "Pink"
+      ]
     }
   }
 }

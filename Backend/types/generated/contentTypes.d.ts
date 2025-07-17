@@ -626,6 +626,24 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Required &
       Schema.Attribute.DefaultTo<'all'>;
+    Product_color: Schema.Attribute.JSON &
+      Schema.Attribute.CustomField<
+        'plugin::multi-select.multi-select',
+        [
+          'Red',
+          'Orange',
+          'Yellow',
+          'Green',
+          'Blue',
+          'Violet',
+          'Black',
+          'White',
+          'Gray',
+          'Brown',
+          'Pink',
+        ]
+      > &
+      Schema.Attribute.DefaultTo<'[]'>;
     Product_desctiption: Schema.Attribute.Text;
     Product_img: Schema.Attribute.Media<'images' | 'files', true> &
       Schema.Attribute.Required;
