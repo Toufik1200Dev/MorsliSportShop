@@ -657,6 +657,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
         [
           'XS',
           'S',
+          'M',
           'L',
           'XL',
           'XXL',
