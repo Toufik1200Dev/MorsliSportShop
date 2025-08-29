@@ -29,7 +29,8 @@ module.exports = [
     name: 'strapi::cors',
     config: {
       origin: [
-        'https://morsli-sport-shop.web.app', // your Firebase Hosting frontend
+        'https://morsli-sport.web.app', // your Firebase Hosting frontend (new)
+        'https://morsli-sport-shop.web.app', // your Firebase Hosting frontend (old)
         'http://localhost:5173',             // for local dev
       ],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
