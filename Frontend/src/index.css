@@ -76,4 +76,8 @@
 /* Ensure smooth scrolling */
 * {
   scroll-behavior: smooth;
+}
+
+body.arabic-font, .arabic-font * {
+  font-family: 'Cairo', Arial, sans-serif !important;
 } 

@@ -1,7 +1,7 @@
 import {
   Box,
   Container,
-  Drawer,
+  Button,
   IconButton,
   ListItemIcon,
   ListItemText,
@@ -16,7 +16,6 @@ import {
   MenuItem,
   Divider,
 } from "@mui/material";
-import Button from "@mui/material/Button";
 import React from "react";
 import { Link } from "react-router-dom";
 
@@ -24,7 +23,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 import WindowIcon from "@mui/icons-material/Window";
 import SearchIcon from "@mui/icons-material/Search";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
 
 import SportsSoccerIcon from "@mui/icons-material/SportsSoccer";
@@ -43,11 +41,9 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import { useLanguage } from "../../LanguageContext";
 import { getTranslation } from "../../translations";
-import { useSelector } from "react-redux";
 
 export default function Header3() {
   const { currentLanguage } = useLanguage();
-  const cartItems = useSelector((state) => state.cart?.items || []);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = React.useState(null);
   const [searchValue, setSearchValue] = React.useState("");
@@ -88,8 +84,6 @@ export default function Header3() {
 
     setState({ ...state, [anchor]: open });
   };
-
-  const cartItemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
   return (
     <Container maxWidth="xl" sx={{ py: 2 }}>

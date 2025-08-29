@@ -1,6 +1,6 @@
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ColorModeContext, useMode } from "./theme";
+import { ColorModeContext, useMode, getThemeWithDirection } from "./theme";
 import { useEffect } from "react";
 
 import Header1 from "./components/header/Header1";
@@ -10,32 +10,34 @@ import Hero from "./components/hero/Hero";
 import Main from "./components/main/Main";
 import Footer from "./components/footer/Footer";
 import ScrollToTop from "./scroll/ScrollToTop";
-import Cart from "./components/main/Cart";
-import OrderForm from "./components/main/OrderForm";
+import ProductDetailsPage from "./components/main/ProductDetailsPage";
 
-import { LanguageProvider } from "./LanguageContext";
+import { LanguageProvider, useLanguage } from "./LanguageContext";
 import SportHome from "./components/SportHome";
 import Contact from "./components/Contact";
 import ClientReviews from "./components/ClientReviews";
 
 // @ts-ignore
-const API_URL = import.meta.env.VITE_BASE_URL || "https://morsli-sport-shop.onrender.com";
+const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:1337";
 
 function App() {
-  const [theme, colorMode] = useMode();
+  const [theme, colorMode, mode] = useMode();
+  const { currentLanguage } = useLanguage();
+  const direction = currentLanguage === 'ar' ? 'rtl' : 'ltr';
+  const themed = getThemeWithDirection(mode, direction, currentLanguage);
 
   useEffect(() => {
     const keepAlive = () => {
-      fetch(`${API_URL}/api/products`) // A lightweight endpoint
+      fetch(`${API_URL.replace(/\/$/, '')}/api/products`) // A lightweight endpoint
         .then(res => {
           if (res.ok) {
-            console.log('Backend ping successful, server is awake.');
+            // Backend is awake and responding
           } else {
-            console.error('Backend ping failed, server might be down or sleeping.', res.status);
+            // Backend ping failed, server might be down or sleeping
           }
         })
         .catch(err => {
-          console.error('Error pinging backend:', err);
+          // Error pinging backend
         });
     };
 
@@ -45,6 +47,15 @@ function App() {
     return () => clearInterval(intervalId);
   }, []);
 
+  // Set body class for Arabic font
+  useEffect(() => {
+    if (currentLanguage === 'ar') {
+      document.body.classList.add('arabic-font');
+    } else {
+      document.body.classList.remove('arabic-font');
+    }
+  }, [currentLanguage]);
+
   return (
     <LanguageProvider>
       <ColorModeContext.Provider
@@ -53,7 +64,7 @@ function App() {
       >
         <ThemeProvider
           // @ts-ignore
-          theme={theme}
+          theme={themed}
         >
           <CssBaseline />
           <BrowserRouter>
@@ -62,7 +73,9 @@ function App() {
               sx={{
                 bgcolor:
                   // @ts-ignore
-                  theme.palette.bg.main,
+                  themed.palette.bg.main,
+                direction,
+                fontFamily: currentLanguage === 'ar' ? 'Cairo, Arial, sans-serif' : 'inherit',
               }}
             >
               <Header1 />
@@ -70,10 +83,9 @@ function App() {
               <Header3 />
               <Routes>
                 <Route path="/" element={<SportHome />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/order" element={<OrderForm />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/avis-client" element={<ClientReviews />} />
+                <Route path="/product/:productId" element={<ProductDetailsPage />} />
               </Routes>
               <Footer />
             </Box>

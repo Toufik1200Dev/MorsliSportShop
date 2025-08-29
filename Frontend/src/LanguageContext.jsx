@@ -16,9 +16,15 @@ export const useLanguage = () => {
 };
 
 export const LanguageProvider = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState(() => {
-    return localStorage.getItem('language') || 'en';
-  });
+  const getDefaultLanguage = () => {
+    const saved = localStorage.getItem('language');
+    if (saved) return saved;
+    const lang = (navigator.language || 'en').toLowerCase();
+    if (lang.startsWith('ar')) return 'ar';
+    if (lang.startsWith('fr')) return 'fr';
+    return 'en';
+  };
+  const [currentLanguage, setCurrentLanguage] = useState(getDefaultLanguage);
 
   const changeLanguage = (language) => {
     setCurrentLanguage(language);

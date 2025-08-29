@@ -8,9 +8,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite preview --port 8080 --host",
-    "lint": "eslint ."
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "generate-communes": "node scripts/generate-communes.js"
   },
   "dependencies": {
+    "@dzcode-io/leblad": "^1.0.3",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.10",

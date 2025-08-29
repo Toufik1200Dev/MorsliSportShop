@@ -7,6 +7,7 @@ export const translations = {
     // Header2
     searchPlaceholder: "Search products...",
     morsliSport: "Morsli Sport",
+    areaSport: "Area Sport",
     
     // Header3
     categories: "Categories",
@@ -32,6 +33,18 @@ export const translations = {
     selectedSize: "Selected Size",
     quantity: "Quantity",
     addToCart: "Add to Cart",
+    color: 'Color',
+    red: 'Red',
+    orange: 'Orange',
+    yellow: 'Yellow',
+    green: 'Green',
+    blue: 'Blue',
+    violet: 'Violet',
+    black: 'Black',
+    white: 'White',
+    gray: 'Gray',
+    brown: 'Brown',
+    pink: 'Pink',
     
     // Cart
     cart: "Cart",
@@ -46,6 +59,7 @@ export const translations = {
     phoneNumber: "Phone Number",
     wilaya: "Wilaya",
     baladiya: "Baladiya",
+    enterBaladiya: "Enter your baladiya name",
     submitOrder: "Submit Order",
     orderSummary: "Order Summary",
     noItemsInCart: "No items in cart.",
@@ -67,6 +81,13 @@ export const translations = {
     settings: "Settings",
     logout: "Logout",
     viewAllReviews: "View All Reviews",
+    subtotal: "Subtotal",
+    delivery: "Delivery",
+    orderSuccess: "Order Successful!",
+    thankYouForOrder: "Thank you for your order.",
+    bureau: "Bureau",
+    domicile: "Home Delivery",
+    errorLoadingProducts: "An error occurred while loading products. Please try again later.",
   },
   
   ar: {
@@ -77,6 +98,7 @@ export const translations = {
     // Header2
     searchPlaceholder: "البحث عن المنتجات...",
     morsliSport: "مرسلي سبورت",
+    areaSport: "آريا سبورت",
     
     // Header3
     categories: "الفئات",
@@ -102,6 +124,18 @@ export const translations = {
     selectedSize: "المقاس المختار",
     quantity: "الكمية",
     addToCart: "أضف إلى السلة",
+    color: 'اللون',
+    red: 'أحمر',
+    orange: 'برتقالي',
+    yellow: 'أصفر',
+    green: 'أخضر',
+    blue: 'أزرق',
+    violet: 'بنفسجي',
+    black: 'أسود',
+    white: 'أبيض',
+    gray: 'رمادي',
+    brown: 'بني',
+    pink: 'وردي',
     
     // Cart
     cart: "السلة",
@@ -116,6 +150,7 @@ export const translations = {
     phoneNumber: "رقم الهاتف",
     wilaya: "الولاية",
     baladiya: "البلدية",
+    enterBaladiya: "أدخل اسم البلدية",
     submitOrder: "إرسال الطلب",
     orderSummary: "ملخص الطلب",
     noItemsInCart: "لا توجد منتجات في السلة.",
@@ -137,6 +172,13 @@ export const translations = {
     settings: "الإعدادات",
     logout: "تسجيل الخروج",
     viewAllReviews: "عرض جميع المراجعات",
+    subtotal: "المجموع الفرعي",
+    delivery: "التوصيل",
+    orderSuccess: "تم الطلب بنجاح!",
+    thankYouForOrder: "شكراً لطلبك.",
+    bureau: "المكتب",
+    domicile: "توصيل منزلي",
+    errorLoadingProducts: "حدث خطأ أثناء تحميل المنتجات. يرجى المحاولة لاحقاً.",
   },
   
   fr: {
@@ -147,6 +189,7 @@ export const translations = {
     // Header2
     searchPlaceholder: "Rechercher des produits...",
     morsliSport: "Morsli Sport",
+    areaSport: "Area Sport",
     
     // Header3
     categories: "Catégories",
@@ -172,6 +215,18 @@ export const translations = {
     selectedSize: "Taille Sélectionnée",
     quantity: "Quantité",
     addToCart: "Ajouter au Panier",
+    color: "Couleur",
+    red: "Rouge",
+    orange: "Orange",
+    yellow: "Jaune",
+    green: "Vert",
+    blue: "Bleu",
+    violet: "Violet",
+    black: "Noir",
+    white: "Blanc",
+    gray: "Gris",
+    brown: "Marron",
+    pink: "Rose",
     
     // Cart
     cart: "Panier",
@@ -186,6 +241,7 @@ export const translations = {
     phoneNumber: "Numéro de Téléphone",
     wilaya: "Wilaya",
     baladiya: "Baladiya",
+    enterBaladiya: "Entrez le nom de la baladiya",
     submitOrder: "Soumettre la Commande",
     orderSummary: "Résumé de la Commande",
     noItemsInCart: "Aucun article dans le panier.",
@@ -207,6 +263,13 @@ export const translations = {
     settings: "Paramètres",
     logout: "Déconnexion",
     viewAllReviews: "Voir tous les avis",
+    subtotal: "Sous-total",
+    delivery: "Livraison",
+    orderSuccess: "Commande réussie!",
+    thankYouForOrder: "Merci pour votre commande.",
+    bureau: "Bureau",
+    domicile: "Livraison à domicile",
+    errorLoadingProducts: "Une erreur s'est produite lors du chargement des produits. Veuillez réessayer plus tard.",
   }
 };
 

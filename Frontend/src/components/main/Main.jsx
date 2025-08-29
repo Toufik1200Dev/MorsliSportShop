@@ -1,27 +1,11 @@
 import {
   Box,
-  Button,
   Container,
-  Dialog,
-  IconButton,
-  Rating,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
-import React, { useState, useEffect } from "react";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import AddShoppingCartOutlinedIcon from "@mui/icons-material/AddShoppingCartOutlined";
-import { Close } from "@mui/icons-material";
-import ProductDetails from "./ProductDetails";
+import React from "react";
 import { useGetProductsQuery } from "../../Redux/product";
-import { useDispatch } from 'react-redux';
-import { addToCart } from '../../Redux/cart';
 // @ts-ignore
 import { useNavigate } from 'react-router-dom';
 
@@ -30,98 +14,34 @@ import { useNavigate } from 'react-router-dom';
  * @typedef {{ env: ImportMetaEnv }} ImportMeta
  */
 
-const API_URL =  "https://morsli-sport-shop.onrender.com";
-console.log('API_URL used for backend:', API_URL);
+const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:1337";
 
-const PREDEFINED_CATEGORIES = [
-  "Football",
-  "Combat Sports",
-  "Cardio",
-  "Musculation",
-  "Tennis",
-  "Yoga",
-  "Boxing",
-  "Running"
-];
+function buildImgUrl(rawUrl) {
+  if (!rawUrl) return '/default-image.png';
+  if (rawUrl.startsWith('http')) return rawUrl;
+  return `${API_URL.replace(/\/$/, '')}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
+}
 
 const Main = () => {
-  console.log("Main component rendered");
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
-  const [selectedProduct, setSelectedProduct] = React.useState(null);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [selectedSizes, setSelectedSizes] = useState({});
-  const [quantities, setQuantities] = useState({});
-  const [scrollPosition, setScrollPosition] = useState(0);
 
-  // Scrolling animation effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setScrollPosition(prev => {
-        const containerWidth = document.querySelector('.category-scroll-container')?.scrollWidth || 0;
-        const viewportWidth = document.querySelector('.category-scroll-container')?.clientWidth || 0;
-        const maxScroll = containerWidth - viewportWidth;
-        
-        if (prev >= maxScroll) {
-          return 0; // Reset to start
-        }
-        return prev + 1; // Increment scroll position
-      });
-    }, 30); // Adjust speed by changing this value
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleClickOpen = (product) => {
-    setSelectedProduct(product);
-    setOpen(true);
+  const handleDetailsClick = (product) => {
+    navigate(`/product/${product.id}`);
   };
 
-  const handleClose = () => {
-    setOpen(false);
-    setSelectedProduct(null);
-  };
-
-  const { data, error, isLoading } = useGetProductsQuery();
-
-  const products = data?.data || [];
-
-  // Log all product image URLs for debugging
-  if (products.length > 0) {
-    const allProductImgUrls = products.map(product => {
-      const rawUrl = product.Product_img?.[0]?.url;
-      const imgUrl = rawUrl?.startsWith('http')
-        ? rawUrl
-        : rawUrl ? `${API_URL}${rawUrl}` : '/default-image.png';
-      return { id: product.id, name: product.Product_name, imgUrl: imgUrl };
-    });
-    console.log('All product image URLs:', allProductImgUrls);
-  }
-
-  // Extract unique categories from products and sort them according to predefined order
-  const categories = Array.from(
-    new Set(products.map(product => product.Product_category).filter(Boolean))
-  ).sort((a, b) => {
-    const indexA = PREDEFINED_CATEGORIES.indexOf(a);
-    const indexB = PREDEFINED_CATEGORIES.indexOf(b);
-    return indexA - indexB;
-  });
-
-  const getFilteredProducts = () => {
-    if (!products.length) {
-      return [];
-    }
-    if (selectedCategory === "all") {
-      return products;
-    }
-    return products.filter(product =>
-      product.Product_category?.toLowerCase() === selectedCategory.toLowerCase()
-    );
-  };
-
-  const filtered = getFilteredProducts();
+  const { data: productsData, error, isLoading } = useGetProductsQuery();
+  
+  // Get real products from API
+  const allProducts = productsData?.data || [];
+  
+  // Get all product image URLs
+  const allProductImgUrls = allProducts.map(product => {
+    // Add null checks to prevent errors
+    if (!product || !product.attributes) return null;
+    
+    const imageUrl = product.attributes.Product_image?.data?.attributes?.url;
+    return imageUrl ? `${API_URL}${imageUrl}` : null;
+  }).filter(url => url !== null);
 
   if (error) {
     let errorMsg = "An error occurred while loading products. Please try again later.";
@@ -147,7 +67,7 @@ const Main = () => {
     );
   }
 
-  if (products.length === 0) {
+  if (allProducts.length === 0) {
     return (
       <Typography variant="h6" sx={{ textAlign: 'center', my: 4 }}>
         No products found!
@@ -185,13 +105,12 @@ const Main = () => {
           }
         }}
       >
-        {getFilteredProducts().map(product => {
-          console.log('Product:', product);
-          const rawUrl = product.Product_img?.[0]?.url;
-          const imgUrl = rawUrl?.startsWith('http')
-            ? rawUrl
-            : rawUrl ? `${API_URL}${rawUrl}` : '/default-image.png';
-          console.log('Image URL for product', product.id, ':', imgUrl);
+        {allProducts.map(product => {
+          // Add null checks to prevent errors
+          if (!product || !product.attributes) return null;
+          
+          const rawUrl = product.attributes.Product_image?.data?.attributes?.url;
+          const imgUrl = buildImgUrl(rawUrl);
           return (
             <div
               key={product.id}
@@ -225,7 +144,7 @@ const Main = () => {
             >
               <img
                 src={imgUrl}
-                alt={product.Product_name}
+                alt={product.attributes?.Product_name || 'Product'}
                 width={140}
                 height={140}
                 style={{
@@ -255,14 +174,14 @@ const Main = () => {
                 color: '#fff',
                 textAlign: 'center',
                 letterSpacing: '0.01em',
-              }}>{product.Product_name}</h3>
+              }}>{product.attributes?.Product_name || 'Product Name'}</h3>
               <p style={{
                 fontSize: '1rem',
                 color: '#b8b8b8',
                 margin: '0 0 4px 0',
                 fontWeight: 500,
                 textAlign: 'center',
-              }}>{product.Product_category}</p>
+              }}>{product.attributes?.Product_category || 'Category'}</p>
               <p style={{
                 fontSize: '1.1rem',
                 color: '#e94560',
@@ -270,7 +189,7 @@ const Main = () => {
                 margin: '0 0 10px 0',
                 textAlign: 'center',
                 letterSpacing: '0.01em',
-              }}>{product.Product_price} DA</p>
+              }}>{product.attributes?.Product_price || '0'} DA</p>
               <button
                 style={{
                   marginTop: 12,
@@ -295,7 +214,7 @@ const Main = () => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = '0 2px 8px 0 rgba(233,69,96,0.3)';
                 }}
-                onClick={() => handleClickOpen(product)}
+                onClick={() => handleDetailsClick(product)}
               >
                 Details
               </button>
@@ -303,37 +222,6 @@ const Main = () => {
           );
         })}
       </Stack>
-
-      <Dialog
-        sx={{
-          ".MuiPaper-root": {
-            minWidth: { xs: "100%", md: 800 },
-            background: '#f8fafc',
-            borderRadius: 4,
-            p: 2,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-          }
-        }}
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <IconButton
-          sx={{
-            ":hover": { color: "red", rotate: "180deg", transition: "0.3s" },
-            position: "absolute",
-            top: 0,
-            right: 10,
-          }}
-          onClick={handleClose}
-        >
-          <Close />
-        </IconButton>
-
-        <ProductDetails product={selectedProduct} onClose={handleClose} />
-      </Dialog>
     </Container>
   );
 };

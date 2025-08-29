@@ -1,15 +1,12 @@
-import { AddShoppingCartOutlined, NavigateBefore, NavigateNext } from "@mui/icons-material";
+import { NavigateBefore, NavigateNext } from "@mui/icons-material";
 import { Box, Button, Stack, Typography, IconButton, Checkbox, FormControlLabel } from "@mui/material";
 import { useState } from "react";
-import { useDispatch } from 'react-redux';
-import { addToCart } from '../../Redux/cart';
 
 const API_URL = import.meta.env.VITE_BASE_URL || "https://morsli-sport-shop.onrender.com";
 
 export default function ProductDetails({ product, onClose }) {
   if (!product) return null;
 
-  const dispatch = useDispatch();
   const [selectedImage, setSelectedImage] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [selectedSize, setSelectedSize] = useState(product.selectedSize || product.Product_size || "");
@@ -25,14 +22,12 @@ export default function ProductDetails({ product, onClose }) {
     setSelectedImage((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const handleAddToCart = () => {
-    dispatch(addToCart({
-      ...product,
-      selectedSize: hasSize ? selectedSize : undefined,
-      quantity,
-    }));
-    if (onClose) onClose();
-  };
+  const imgObj = images[selectedImage];
+  const url = imgObj?.formats?.medium?.url || imgObj?.url;
+  let imageUrl = '/default-image.png';
+  if (url) {
+    imageUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
+  }
 
   return (
     <Box sx={{
@@ -148,7 +143,7 @@ export default function ProductDetails({ product, onClose }) {
             zIndex: 2,
             background: 'rgba(22,33,62,0.95)'
           }} 
-          src={images[selectedImage]?.url ? `${API_URL}${images[selectedImage].url}` : '/default-image.png'}
+          src={imageUrl}
           alt={product.Product_name}
           onClick={() => setIsZoomed(!isZoomed)}
         />
@@ -216,10 +211,9 @@ export default function ProductDetails({ product, onClose }) {
             <label htmlFor="qty-input" style={{ fontWeight: 500, color: '#fff' }}>Quantity:</label>
             <input
               id="qty-input"
-              type="number"
-              min={1}
+              type="text"
               value={quantity}
-              onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={e => setQuantity(e.target.value)}
               style={{
                 marginLeft: 8,
                 padding: '4px 8px',
@@ -244,28 +238,6 @@ export default function ProductDetails({ product, onClose }) {
               <b>Quantity:</b> {quantity}
             </Typography>
           )}
-
-          {/* Add to Cart button */}
-          <Button 
-            variant="contained" 
-            size="large"
-            sx={{
-              mt: 2,
-              textTransform: "capitalize",
-              width: { xs: '100%', sm: 'auto' },
-              background: '#e94560',
-              color: '#fff',
-              boxShadow: '0 2px 8px 0 rgba(233,69,96,0.3)',
-              '&:hover': {
-                background: '#d7263d',
-                boxShadow: '0 4px 12px 0 rgba(233,69,96,0.4)',
-              }
-            }}
-            onClick={handleAddToCart}
-          >
-            <AddShoppingCartOutlined sx={{ mr: 1 }} />
-            Add to Cart
-          </Button>
         </Stack>
       </Box>
     </Box>

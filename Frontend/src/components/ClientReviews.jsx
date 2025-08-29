@@ -9,7 +9,7 @@ const reviews = [
   { name: 'Nadia T.', rating: 5, comment: 'Livraison à temps et produits bien emballés.' },
   { name: 'Karim D.', rating: 4, comment: 'Bon rapport qualité/prix, je recommande.' },
   { name: 'Sofiane M.', rating: 5, comment: 'Le service client est très réactif.' },
-  { name: 'Amina Z.', rating: 5, comment: 'J\'adore la selection de produits sportifs.' },
+  { name: 'Melissa D.', rating: 5, comment: 'Great work 😍😍,Good luck😍' },
   { name: 'Rachid F.', rating: 4, comment: 'Site facile à utiliser, commande rapide.' },
   { name: 'Lina S.', rating: 5, comment: 'Très satisfaite de ma commande, merci !' },
   { name: 'Omar B.', rating: 5, comment: 'Produits de qualité, je reviendrai.' },

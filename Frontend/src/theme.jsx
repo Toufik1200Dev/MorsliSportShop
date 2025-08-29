@@ -52,6 +52,17 @@ export const ColorModeContext = createContext({
   toggleColorMode: () => {},
 });
 
+// New: getThemeWithDirection for RTL and font
+export const getThemeWithDirection = (mode, direction, language) => {
+  return createTheme({
+    ...getDesignTokens(mode),
+    direction,
+    typography: {
+      fontFamily: language === 'ar' ? 'Cairo, Arial, sans-serif' : 'inherit',
+    },
+  });
+};
+
 export const useMode = () => {
   const [mode, setMode] = useState(
     localStorage.getItem("mode") ? localStorage.getItem("mode") : "dark"
@@ -66,5 +77,5 @@ export const useMode = () => {
   );
 
   const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
-  return [theme, colorMode];
+  return [theme, colorMode, mode];
 };

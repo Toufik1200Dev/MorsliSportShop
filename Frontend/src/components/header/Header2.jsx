@@ -1,46 +1,31 @@
 import React, { useState, useEffect } from "react";
 import {
-  ShoppingCart,
-  PersonOutlineOutlined,
-  Search as SearchIcon,
-  Login,
-  PersonAdd,
-  AccountCircle,
-  Settings,
-  Logout,
-  Favorite
-} from "@mui/icons-material";
-import {
-  Badge,
-  Container,
-  IconButton,
-  InputBase,
-  Stack,
-  Typography,
-  useTheme,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
   Box,
+  Container,
+  Typography,
+  IconButton,
+  Stack,
+  InputBase,
   Paper,
   List,
   ListItem,
   ListItemButton,
-  Divider
+  ListItemText,
+  Badge,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { styled, alpha, useTheme } from "@mui/material/styles";
+import SearchIcon from "@mui/icons-material/Search";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
 import { useGetProductsQuery } from "../../Redux/product";
+import { useLanguage } from "../../LanguageContext";
 
 const Search = styled("div")(({ theme }) => ({
-  flexGrow: 0.4,
   position: "relative",
   borderRadius: theme.shape.borderRadius,
-  border: "1px solid #777",
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
   "&:hover": {
-    border: `1px solid ${theme.palette.text.primary}`,
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
   marginRight: theme.spacing(2),
   marginLeft: 0,
@@ -93,30 +78,16 @@ const SearchResults = styled(Paper)(({ theme }) => ({
 }));
 
 export default function Header2() {
-  const cartItems = useSelector(
-    /** @param {{ cart: { items: any[] } }} state */
-    (state) => state.cart.items
-  );
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { t } = useLanguage();
   
   // Search functionality
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const { data: productsData } = useGetProductsQuery();
   const products = productsData?.data || [];
-  
-  // User menu functionality
-  const [userAnchorEl, setUserAnchorEl] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // This would come from your auth system
-  
-  const handleUserMenuOpen = (event) => {
-    setUserAnchorEl(event.currentTarget);
-  };
-  
-  const handleUserMenuClose = () => {
-    setUserAnchorEl(null);
-  };
 
   // Filter products based on search query
   const filteredProducts = products.filter(product =>
@@ -169,117 +140,60 @@ export default function Header2() {
     }
   }, [showSearchResults]);
 
+  // Only show full header on home page
+  const isHome = location.pathname === "/";
+
   return (
     <Container sx={{ my: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Left: Logo + Shop Name */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-            <img src="/images/MorsliSportLogo.png" alt="Logo" style={{ height: 40, marginRight: 8 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 1 }}>Morsli Sport</Typography>
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', flexDirection: 'row', gap: 20 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <img src="/images/MorsliSportLogo.png" alt="Logo" style={{ height: 40, marginRight: 8 }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 1 }}>{t('morsliSport')}</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <img src="/images/AreaSportLogo.jpg" alt="Area Sport Logo" style={{ height: 40, marginRight: 8 }} />
+              <Typography variant="h6" sx={{ fontWeight: 700, letterSpacing: 1 }}>{t('areaSport')}</Typography>
+            </Box>
           </Link>
         </Box>
-        {/* Center: Search Bar */}
-        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-          <Search>
-            <SearchIconWrapper>
-              <SearchIcon />
-            </SearchIconWrapper>
-            <StyledInputBase
-              placeholder="Search products..."
-              inputProps={{ "aria-label": "search" }}
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onClick={(e) => e.stopPropagation()}
-            />
-            {showSearchResults && filteredProducts.length > 0 && (
-              <SearchResults onClick={(e) => e.stopPropagation()}>
-                <List>
-                  {filteredProducts.slice(0, 5).map((product) => (
-                    <ListItem key={product.id} disablePadding>
-                      <ListItemButton onClick={() => handleSearchResultClick(product)}>
-                        <ListItemText
-                          primary={product.Product_name}
-                          secondary={`${product.Product_category} - ${product.Product_price} DA`}
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              </SearchResults>
-            )}
-          </Search>
-        </Box>
-        {/* Right: Profile + Cart */}
-        <Stack direction={"row"} alignItems={"center"} gap={1}>
-          <IconButton onClick={handleUserMenuOpen}>
-            <PersonOutlineOutlined />
-          </IconButton>
-          <Menu
-            anchorEl={userAnchorEl}
-            open={Boolean(userAnchorEl)}
-            onClose={handleUserMenuClose}
-            PaperProps={{
-              sx: {
-                mt: 1,
-                minWidth: 200,
-                boxShadow: theme.shadows[3],
-              }
-            }}
-          >
-            {!isLoggedIn ? (
-              <>
-                <MenuItem onClick={handleUserMenuClose}>
-                  <ListItemIcon>
-                    <Login fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Login" />
-                </MenuItem>
-                <MenuItem onClick={handleUserMenuClose}>
-                  <ListItemIcon>
-                    <PersonAdd fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Register" />
-                </MenuItem>
-              </>
-            ) : (
-              <>
-                <MenuItem onClick={handleUserMenuClose}>
-                  <ListItemIcon>
-                    <AccountCircle fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="My Profile" />
-                </MenuItem>
-                <MenuItem onClick={handleUserMenuClose}>
-                  <ListItemIcon>
-                    <Favorite fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Wishlist" />
-                </MenuItem>
-                <MenuItem onClick={handleUserMenuClose}>
-                  <ListItemIcon>
-                    <Settings fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Settings" />
-                </MenuItem>
-                <Divider />
-                <MenuItem onClick={handleUserMenuClose}>
-                  <ListItemIcon>
-                    <Logout fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Logout" />
-                </MenuItem>
-              </>
-            )}
-          </Menu>
-          <Link to="/cart">
-            <IconButton aria-label="cart">
-              <StyledBadge badgeContent={cartItems ? cartItems.length : 0} color="primary">
-                <ShoppingCart />
-              </StyledBadge>
-            </IconButton>
-          </Link>
-        </Stack>
+        {isHome && (
+          <>
+            {/* Center: Search Bar */}
+            <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+              <Search>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase
+                  placeholder={t('searchPlaceholder')}
+                  inputProps={{ "aria-label": "search" }}
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onClick={(e) => e.stopPropagation()}
+                />
+                {showSearchResults && filteredProducts.length > 0 && (
+                  <SearchResults onClick={(e) => e.stopPropagation()}>
+                    <List>
+                      {filteredProducts.slice(0, 5).map((product) => (
+                        <ListItem key={product.id} disablePadding>
+                          <ListItemButton onClick={() => handleSearchResultClick(product)}>
+                            <ListItemText
+                              primary={product.Product_name}
+                              secondary={`${product.Product_category} - ${product.Product_price} DA`}
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </SearchResults>
+                )}
+              </Search>
+            </Box>
+          </>
+        )}
       </Box>
     </Container>
   );
