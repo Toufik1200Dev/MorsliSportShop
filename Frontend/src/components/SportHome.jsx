@@ -478,6 +478,17 @@ export default function SportHome() {
               );
             })}
           </Grid>
+          {/* Debug Info - Remove this after testing */}
+          <Box sx={{ textAlign: 'center', mt: 2, p: 2, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
+            <Typography variant="body2" sx={{ color: '#fff', mb: 1 }}>
+              Debug: Products loaded: {allProducts.length} | Has more: {hasMore ? 'Yes' : 'No'} | Current page: {currentPage}
+            </Typography>
+            {productsData?.meta?.pagination && (
+              <Typography variant="body2" sx={{ color: '#ccc' }}>
+                Total: {productsData.meta.pagination.total} | Page size: {productsData.meta.pagination.pageSize}
+              </Typography>
+            )}
+          </Box>
           {hasMore && (
             <Box sx={{ textAlign: 'center', mt: 4 }}>
               <Button
