@@ -18,7 +18,7 @@ import Contact from "./components/Contact";
 import ClientReviews from "./components/ClientReviews";
 
 // @ts-ignore
-const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:1337";
+const API_URL = import.meta.env.VITE_BASE_URL || "https://morsli-sport-shop.onrender.com";
 
 function App() {
   const [theme, colorMode, mode] = useMode();
