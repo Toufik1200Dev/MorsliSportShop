@@ -39,19 +39,7 @@ module.exports = [
   },
   'strapi::poweredBy',
   'strapi::query',
-  {
-    name: 'strapi::body',
-    config: {
-      jsonLimit: '10mb',
-      formLimit: '10mb',
-      textLimit: '10mb',
-      formidable: {
-        maxFileSize: 10 * 1024 * 1024, // 10MB
-        maxFields: 1000,
-        maxFieldsSize: 20 * 1024 * 1024, // 20MB
-      },
-    },
-  },
+  'strapi::body',
   {
     name: 'strapi::session',
     config: {
