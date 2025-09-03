@@ -13,10 +13,13 @@ DATABASE_NAME=your-database-name
 DATABASE_USERNAME=your-username
 DATABASE_PASSWORD=your-password
 DATABASE_SSL=true
+DATABASE_SSL_REJECT_UNAUTHORIZED=false
 DATABASE_CONNECTION_TIMEOUT=60000
 DATABASE_POOL_MIN=2
 DATABASE_POOL_MAX=10
 ```
+
+**Note:** `DATABASE_SSL_REJECT_UNAUTHORIZED=false` allows self-signed certificates (common with free PostgreSQL services)
 
 **⚠️ IMPORTANT:** You MUST set up a PostgreSQL database. SQLite will not work in production!
 
