@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = ({ env }) => {
-  const client = env('DATABASE_CLIENT', 'postgres');
+  const client = env('DATABASE_CLIENT', 'mongo');
 
   const connections = {
     mysql: {
@@ -47,6 +47,19 @@ module.exports = ({ env }) => {
         filename: path.join(__dirname, '..', env('DATABASE_FILENAME', '.tmp/data.db')),
       },
       useNullAsDefault: true,
+    },
+    mongo: {
+      connection: {
+        uri: env('DATABASE_URI'),
+        options: {
+          ssl: env.bool('DATABASE_SSL', true),
+          authSource: env('DATABASE_AUTH_SOURCE', 'admin'),
+          auth: {
+            username: env('DATABASE_USERNAME'),
+            password: env('DATABASE_PASSWORD'),
+          },
+        },
+      },
     },
   };
 
