@@ -10,7 +10,7 @@ module.exports = ({ env }) => ({
   // Add timeout and keep-alive settings
   http: {
     serverOptions: {
-      requestTimeout: 120000, // 2 minutes
+      requestTimeout: 130000, // 2 minutes 10 seconds
       headersTimeout: 125000, // 2 minutes 5 seconds
       keepAliveTimeout: 5000,
       maxKeepAliveRequests: 100,
