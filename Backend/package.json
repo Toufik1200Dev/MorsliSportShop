@@ -9,7 +9,7 @@
     "deploy": "strapi deploy",
     "dev": "strapi develop",
     "develop": "strapi develop",
-    "start": "NODE_OPTIONS='--max-old-space-size=256' strapi start",
+    "start": "NODE_OPTIONS='--max-old-space-size=512 --max-http-header-size=16384' strapi start",
     "start:dev": "strapi develop",
     "seed:example": "node ./scripts/seed.js",
     "strapi": "strapi",

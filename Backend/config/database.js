@@ -55,6 +55,19 @@ module.exports = ({ env }) => {
       client,
       ...connections[client],
       acquireConnectionTimeout: env.int('DATABASE_CONNECTION_TIMEOUT', 60000),
+      // Add connection pool settings for better performance
+      pool: {
+        min: env.int('DATABASE_POOL_MIN', 2),
+        max: env.int('DATABASE_POOL_MAX', 10),
+        acquireTimeoutMillis: 60000,
+        createTimeoutMillis: 30000,
+        destroyTimeoutMillis: 5000,
+        idleTimeoutMillis: 30000,
+        reapIntervalMillis: 1000,
+        createRetryIntervalMillis: 200,
+      },
+      // Add debug settings for development
+      debug: env.bool('DATABASE_DEBUG', false),
     },
   };
 };
