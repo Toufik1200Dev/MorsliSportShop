@@ -1,0 +1,5 @@
+[33m6285a71[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: add pagination debug info and fix Load More button logic
+[33mc834745[m fix: update API URL and Firebase configuration
+[33m252b4a3[m fix: update CORS for new Firebase URL
+[33m48ec8ca[m feat: implement pagination for unlimited products, optimize backend memory usage
+[33m5ed81cd[m feat: add Docker configuration for Fly.io deployment
