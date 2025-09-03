@@ -2,85 +2,35 @@
 
 /**
  * Upload service extension
- * Handles bulk uploads with better error handling and retry logic
+ * Adds retry logic for Cloudinary uploads
  */
 
 module.exports = (plugin) => {
-  // Override the upload service
-  plugin.services.upload = ({ strapi }) => ({
-    ...plugin.services.upload({ strapi }),
+  // Store the original upload service
+  const originalUpload = plugin.services.upload;
+  
+  // Override the upload service with retry logic
+  plugin.services.upload = ({ strapi }) => {
+    const service = originalUpload({ strapi });
     
-    async upload(files, { data = {} } = {}) {
-      const { fileInfo = {} } = data;
+    return {
+      ...service,
       
-      // Handle single file upload
-      if (!Array.isArray(files)) {
-        return this.uploadSingleFile(files, fileInfo);
-      }
-      
-      // Handle multiple files upload with better error handling
-      const results = [];
-      const errors = [];
-      
-      for (let i = 0; i < files.length; i++) {
+      async upload(files, options = {}) {
         try {
-          const file = files[i];
-          const result = await this.uploadSingleFile(file, fileInfo);
-          results.push(result);
+          return await service.upload(files, options);
         } catch (error) {
-          strapi.log.error(`Error uploading file ${i + 1}:`, error);
-          errors.push({
-            index: i,
-            error: error.message,
-            filename: files[i]?.name || 'unknown'
-          });
-        }
-      }
-      
-      // If all uploads failed, throw an error
-      if (results.length === 0 && errors.length > 0) {
-        const error = new Error('All file uploads failed');
-        error.details = errors;
-        throw error;
-      }
-      
-      // If some uploads failed, log warnings but return successful ones
-      if (errors.length > 0) {
-        strapi.log.warn(`${errors.length} files failed to upload:`, errors);
-      }
-      
-      return results;
-    },
-    
-    async uploadSingleFile(file, fileInfo = {}) {
-      try {
-        // Add retry logic for Cloudinary uploads
-        let attempts = 0;
-        const maxAttempts = 3;
-        
-        while (attempts < maxAttempts) {
-          try {
-            const result = await plugin.services.upload({ strapi }).upload([file], { data: { fileInfo } });
-            return result[0];
-          } catch (error) {
-            attempts++;
-            
-            if (error.message.includes('Request Timeout') && attempts < maxAttempts) {
-              strapi.log.warn(`Upload attempt ${attempts} failed, retrying...`);
-              // Wait before retry (exponential backoff)
-              await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempts) * 1000));
-              continue;
-            }
-            
-            throw error;
+          // Add retry logic for timeout errors
+          if (error.message && error.message.includes('Request Timeout')) {
+            strapi.log.warn('Upload timeout, retrying...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return await service.upload(files, options);
           }
+          throw error;
         }
-      } catch (error) {
-        strapi.log.error('Single file upload failed:', error);
-        throw error;
       }
-    }
-  });
+    };
+  };
   
   return plugin;
 };
