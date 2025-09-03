@@ -1,7 +1,7 @@
 module.exports = {
   rest: {
-    defaultLimit: 8,        // Reduce from 25 to 8
-    maxLimit: 20,          // Reduce from 100 to 20
-    withCount: false,      // Disable count queries (saves memory)
+    defaultLimit: 25,       // Allow more products by default
+    maxLimit: 100,         // Allow up to 100 products per request
+    withCount: true,       // Enable count queries for pagination
   },
 };
