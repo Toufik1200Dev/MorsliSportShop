@@ -17,11 +17,11 @@ export const productApi = createApi({
   }),
   endpoints: (builder) => ({
     getProducts: builder.query({
-      query: (page = 1) => ({
+      query: (page = 1, pageSize = 25) => ({
         url: "products",
         params: {
           "pagination[page]": page,
-          "pagination[pageSize]": 8,
+          "pagination[pageSize]": pageSize,
           "populate": "*"
         }
       }),
