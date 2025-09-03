@@ -2,10 +2,6 @@ module.exports = [
   'strapi::logger',
   'strapi::errors',
   {
-    name: 'global::upload-error-handler',
-    config: {},
-  },
-  {
     name: 'strapi::security',
     config: {
       contentSecurityPolicy: {
