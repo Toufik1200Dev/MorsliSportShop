@@ -4,22 +4,28 @@
 
 Make sure to set these environment variables in your Render dashboard:
 
-### Database Configuration (REQUIRED - MongoDB)
+### Database Configuration (REQUIRED - PostgreSQL)
 ```
-DATABASE_CLIENT=mongo
-DATABASE_URI=mongodb+srv://username:password@cluster.mongodb.net/database-name?retryWrites=true&w=majority
-DATABASE_USERNAME=your-mongodb-username
-DATABASE_PASSWORD=your-mongodb-password
+DATABASE_CLIENT=postgres
+DATABASE_HOST=your-postgres-host
+DATABASE_PORT=5432
+DATABASE_NAME=your-database-name
+DATABASE_USERNAME=your-username
+DATABASE_PASSWORD=your-password
 DATABASE_SSL=true
-DATABASE_AUTH_SOURCE=admin
+DATABASE_CONNECTION_TIMEOUT=60000
+DATABASE_POOL_MIN=2
+DATABASE_POOL_MAX=10
 ```
 
-**⚠️ IMPORTANT:** You MUST set up a MongoDB database. We recommend MongoDB Atlas (free tier available). SQLite will not work in production!
+**⚠️ IMPORTANT:** You MUST set up a PostgreSQL database. SQLite will not work in production!
 
-**Free MongoDB Options:**
-- **MongoDB Atlas** (Recommended) - 512MB free tier
+**Free PostgreSQL Options:**
+- **Render PostgreSQL** (Recommended) - 1GB free tier
+- **Supabase** - 500MB free tier
 - **Railway** - 1GB free tier
-- **MongoDB Cloud** - Free tier available
+- **Neon** - 3GB free tier
+- **ElephantSQL** - 20MB free tier
 
 ### App Configuration
 ```
