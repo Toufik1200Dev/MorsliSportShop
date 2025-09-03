@@ -4,7 +4,7 @@
 
 Make sure to set these environment variables in your Render dashboard:
 
-### Database Configuration
+### Database Configuration (REQUIRED - PostgreSQL)
 ```
 DATABASE_CLIENT=postgres
 DATABASE_HOST=your-postgres-host
@@ -17,6 +17,8 @@ DATABASE_CONNECTION_TIMEOUT=60000
 DATABASE_POOL_MIN=2
 DATABASE_POOL_MAX=10
 ```
+
+**⚠️ IMPORTANT:** You MUST set up a PostgreSQL database on Render or use an external PostgreSQL service. SQLite will not work in production!
 
 ### App Configuration
 ```
