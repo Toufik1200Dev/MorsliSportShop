@@ -10,8 +10,8 @@ module.exports = ({ env }) => ({
   // Add timeout and keep-alive settings
   http: {
     serverOptions: {
-      requestTimeout: 300000, // 5 minutes for bulk uploads
-      headersTimeout: 290000, // 4 minutes 50 seconds
+      requestTimeout: 600000, // 10 minutes for very large uploads
+      headersTimeout: 590000, // 9 minutes 50 seconds
       keepAliveTimeout: 5000,
       maxKeepAliveRequests: 50, // Reduced to prevent memory issues
     },

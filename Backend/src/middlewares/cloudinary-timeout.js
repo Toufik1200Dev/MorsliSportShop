@@ -15,8 +15,8 @@ module.exports = (config, { strapi }) => {
         if (fileArray.length > 10) {
           strapi.log.warn(`Bulk upload detected: ${fileArray.length} files. Processing in batches.`);
           
-          // Process files in batches of 5
-          const batchSize = 5;
+          // Process files in batches of 3 for very large uploads
+          const batchSize = fileArray.length > 50 ? 3 : 5;
           const results = [];
           
           for (let i = 0; i < fileArray.length; i += batchSize) {
@@ -40,9 +40,10 @@ module.exports = (config, { strapi }) => {
               }
             }
             
-            // Add delay between batches
+            // Add delay between batches (longer for very large uploads)
             if (i + batchSize < fileArray.length) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              const delay = fileArray.length > 50 ? 2000 : 1000; // 2s for 50+, 1s for smaller
+              await new Promise(resolve => setTimeout(resolve, delay));
             }
           }
           

@@ -1,6 +1,6 @@
 module.exports = (config, { strapi }) => {
   const uploadCounts = new Map();
-  const UPLOAD_LIMIT = 20; // Max 20 uploads per minute per IP
+  const UPLOAD_LIMIT = 50; // Max 50 uploads per minute per IP (increased for large batches)
   const WINDOW_MS = 60000; // 1 minute window
 
   return async (ctx, next) => {
