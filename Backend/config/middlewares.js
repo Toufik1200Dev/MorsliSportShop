@@ -2,6 +2,10 @@ module.exports = [
   'strapi::logger',
   'strapi::errors',
   {
+    name: 'global::upload-rate-limit',
+    config: {},
+  },
+  {
     name: 'global::cloudinary-timeout',
     config: {},
   },

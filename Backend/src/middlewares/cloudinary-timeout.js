@@ -6,6 +6,57 @@ module.exports = (config, { strapi }) => {
       const originalTimeout = ctx.req.timeout;
       ctx.req.timeout = 120000; // 2 minutes
       
+      // Add memory management for bulk uploads
+      const files = ctx.request.files || ctx.request.file;
+      if (files) {
+        const fileArray = Array.isArray(files) ? files : [files];
+        
+        // Limit concurrent uploads to prevent memory issues
+        if (fileArray.length > 10) {
+          strapi.log.warn(`Bulk upload detected: ${fileArray.length} files. Processing in batches.`);
+          
+          // Process files in batches of 5
+          const batchSize = 5;
+          const results = [];
+          
+          for (let i = 0; i < fileArray.length; i += batchSize) {
+            const batch = fileArray.slice(i, i + batchSize);
+            strapi.log.info(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(fileArray.length/batchSize)}`);
+            
+            // Process each file in the batch
+            for (const file of batch) {
+              try {
+                // Add small delay between uploads to prevent overwhelming
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Process individual file
+                ctx.request.file = file;
+                await next();
+                
+                results.push({ success: true, file: file.name });
+              } catch (error) {
+                strapi.log.error(`Upload failed for ${file.name}:`, error.message);
+                results.push({ success: false, file: file.name, error: error.message });
+              }
+            }
+            
+            // Add delay between batches
+            if (i + batchSize < fileArray.length) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+          
+          // Return batch results
+          ctx.body = { 
+            message: 'Bulk upload completed',
+            results: results,
+            success: results.filter(r => r.success).length,
+            failed: results.filter(r => !r.success).length
+          };
+          return;
+        }
+      }
+      
       // Add retry logic for Cloudinary timeouts
       let retryCount = 0;
       const maxRetries = 3;
