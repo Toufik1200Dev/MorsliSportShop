@@ -2,11 +2,19 @@ module.exports = [
   'strapi::logger',
   'strapi::errors',
   {
+    name: 'global::error-handler',
+    config: {},
+  },
+  {
     name: 'global::upload-rate-limit',
     config: {},
   },
   {
     name: 'global::cloudinary-timeout',
+    config: {},
+  },
+  {
+    name: 'global::memory-manager',
     config: {},
   },
   {

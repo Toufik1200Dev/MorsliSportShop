@@ -29,11 +29,25 @@ module.exports = (config, { strapi }) => {
                 // Add small delay between uploads to prevent overwhelming
                 await new Promise(resolve => setTimeout(resolve, 100));
                 
-                // Process individual file
-                ctx.request.file = file;
-                await next();
+                // Process individual file with timeout protection
+                const uploadPromise = new Promise(async (resolve, reject) => {
+                  try {
+                    ctx.request.file = file;
+                    await next();
+                    resolve({ success: true, file: file.name });
+                  } catch (error) {
+                    reject(error);
+                  }
+                });
                 
-                results.push({ success: true, file: file.name });
+                // Add timeout for individual uploads
+                const timeoutPromise = new Promise((_, reject) => {
+                  setTimeout(() => reject(new Error('Upload timeout')), 30000); // 30 second timeout per file
+                });
+                
+                const result = await Promise.race([uploadPromise, timeoutPromise]);
+                results.push(result);
+                
               } catch (error) {
                 strapi.log.error(`Upload failed for ${file.name}:`, error.message);
                 results.push({ success: false, file: file.name, error: error.message });
@@ -47,12 +61,15 @@ module.exports = (config, { strapi }) => {
             }
           }
           
-          // Return batch results
+          // Return batch results with proper JSON format
+          ctx.status = 200;
+          ctx.type = 'application/json';
           ctx.body = { 
             message: 'Bulk upload completed',
             results: results,
             success: results.filter(r => r.success).length,
-            failed: results.filter(r => !r.success).length
+            failed: results.filter(r => !r.success).length,
+            total: results.length
           };
           return;
         }
