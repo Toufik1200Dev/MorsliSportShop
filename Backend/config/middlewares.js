@@ -2,6 +2,10 @@ module.exports = [
   'strapi::logger',
   'strapi::errors',
   {
+    name: 'global::cloudinary-timeout',
+    config: {},
+  },
+  {
     name: 'strapi::security',
     config: {
       contentSecurityPolicy: {
