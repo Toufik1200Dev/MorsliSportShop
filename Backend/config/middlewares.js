@@ -6,6 +6,10 @@ module.exports = [
     config: {},
   },
   {
+    name: 'global::keepalive',
+    config: {},
+  },
+  {
     name: 'global::upload-rate-limit',
     config: {},
   },
