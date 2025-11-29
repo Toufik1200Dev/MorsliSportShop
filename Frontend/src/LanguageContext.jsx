@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { getTranslation } from './translations';
 
 const LanguageContext = createContext({
@@ -15,15 +15,18 @@ export const useLanguage = () => {
   return context;
 };
 
-export const LanguageProvider = ({ children }) => {
-  const getDefaultLanguage = () => {
+// Helper function outside component to avoid TDZ issues
+const getDefaultLanguage = () => {
+  try {
     const saved = localStorage.getItem('language');
     if (saved) return saved;
-    const lang = (navigator.language || 'en').toLowerCase();
-    if (lang.startsWith('ar')) return 'ar';
-    if (lang.startsWith('fr')) return 'fr';
-    return 'en';
-  };
+    return 'fr'; // Default to French
+  } catch {
+    return 'fr';
+  }
+};
+
+export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState(getDefaultLanguage);
 
   const changeLanguage = (language) => {

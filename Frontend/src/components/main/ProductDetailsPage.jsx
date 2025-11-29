@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Box, 
@@ -15,48 +15,37 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  DialogActions,
   Paper,
   Divider,
   Chip,
-  Grid
+  Grid,
+  CircularProgress,
+  Alert,
+  Card,
+  CardContent,
 } from '@mui/material';
 import { 
   NavigateBefore, 
   NavigateNext, 
   CheckCircle,
   ArrowBack,
-  LocalShipping,
-  Payment,
-  Security
 } from '@mui/icons-material';
 import { wilayas } from '../../data/algeria-localities.js';
 import { deliveryPricing } from '../../data/delivery-pricing';
 import { useLanguage } from '../../LanguageContext';
-import { useGetProductsQuery } from '../../Redux/product';
+import { getProduct } from '../../api/products';
+import { createOrder as createOrderRecord } from '../../api/orders';
 
-const API_URL = import.meta.env.VITE_BASE_URL || "http://localhost:1337";
-
-function buildImgUrl(rawUrl) {
-  if (!rawUrl) return '/default-image.png';
-  if (rawUrl.startsWith('http')) return rawUrl;
-      return `${API_URL.replace(/\/$/, '')}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
-}
-
-// Helper to guarantee translation is a string
-function safeT(val, fallback) {
-  return typeof val === 'string' && val.trim() ? val : fallback;
-}
-
-export default function ProductDetailsPage() {
+function ProductDetailsPage() {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { t, currentLanguage } = useLanguage();
   
-  // Use the existing Redux query to get all products
-  const { data: productsData, error, isLoading } = useGetProductsQuery();
-  
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isZoomed, setIsZoomed] = useState(false);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [successOpen, setSuccessOpen] = useState(false);
@@ -68,794 +57,1000 @@ export default function ProductDetailsPage() {
     phone: '',
     wilayaId: '',
     baladiya: '',
+    address: '',
   });
   const [deliveryType, setDeliveryType] = useState('bureau');
+  const [submitting, setSubmitting] = useState(false);
 
-  // Find the specific product from the products data
-  const products = productsData?.data || [];
-  const product = products.find(
-    p => p.id === productId || p.id === Number(productId) || p.id.toString() === productId
-  );
-
-  // Set selected size and color when product is found
   useEffect(() => {
-    if (product && Array.isArray(product.Product_sizes) && product.Product_sizes.length > 0) {
-      setSelectedSize(product.Product_sizes[0]); // default to first size
-    } else {
-      setSelectedSize("");
+    loadProduct();
+  }, [productId]);
+
+  const loadProduct = async () => {
+    try {
+      setLoading(true);
+      const productData = await getProduct(productId);
+      if (productData) {
+        setProduct(productData);
+        if (productData.Product_sizes?.length > 0) {
+          setSelectedSize(productData.Product_sizes[0]);
+        }
+        if (productData.Product_color?.length > 0) {
+          setSelectedColor(productData.Product_color[0]);
+        }
+      } else {
+        setError('Product not found');
+      }
+    } catch (err) {
+      setError('Failed to load product: ' + err.message);
+    } finally {
+      setLoading(false);
     }
-    if (product && Array.isArray(product.Product_color) && product.Product_color.length > 0) {
-      setSelectedColor(product.Product_color[0]); // default to first color
-    } else {
-      setSelectedColor("");
-    }
-  }, [product]);
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%)',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <CircularProgress sx={{ color: '#00d4ff' }} size={60} />
+      </Box>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <Box sx={{ 
+        background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%)',
+        minHeight: '100vh',
+        pt: { xs: 10, sm: 12 },
+      }}>
+        <Container sx={{ py: 8, textAlign: 'center' }}>
+          <Alert 
+            severity="error"
+            sx={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#ef4444',
+              mb: 3,
+            }}
+          >
+            {error || 'Product not found'}
+          </Alert>
+          <Button 
+            onClick={() => navigate('/')}
+            sx={{
+              background: 'linear-gradient(135deg, #00d4ff 0%, #00b8d4 100%)',
+              color: '#000',
+              fontWeight: 700,
+              px: 4,
+              py: 1.5,
+              borderRadius: 2,
+              '&:hover': {
+                background: 'linear-gradient(135deg, #00b8d4 0%, #00a8cc 100%)',
+              },
+            }}
+          >
+            Retour à l'accueil
+          </Button>
+        </Container>
+      </Box>
+    );
+  }
+
+  const images = product.Product_img || [];
+  const hasSizes = product.Product_sizes && product.Product_sizes.length > 0;
+  const hasColors = product.Product_color && product.Product_color.length > 0;
 
   const nextImage = () => {
-    if (product?.Product_img) {
-      setSelectedImage((prev) => (prev + 1) % product.Product_img.length);
+    if (images.length > 0) {
+      setSelectedImage((prev) => (prev + 1) % images.length);
     }
   };
 
   const prevImage = () => {
-    if (product?.Product_img) {
-      setSelectedImage((prev) => (prev - 1 + product.Product_img.length) % product.Product_img.length);
+    if (images.length > 0) {
+      setSelectedImage((prev) => (prev - 1 + images.length) % images.length);
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm(prevForm => {
-      const newForm = { ...prevForm, [name]: value };
-      return newForm;
-    });
-  };
-
-  const handleDeliveryTypeChange = (e) => {
-    setDeliveryType(e.target.value);
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     
-    // Validate quantity
-    if (!quantity || quantity <= 0) {
-      alert('Please enter a valid quantity (minimum 1)');
+    if (!form.fullName || !form.phone || !form.wilayaId) {
+      alert('Veuillez remplir tous les champs requis');
       return;
     }
-    
-    const wilayaObj = wilayas.find(w => w.id === parseInt(form.wilayaId, 10));
-    const wilayaName = wilayaObj ? wilayaObj.name : '';
-    
-    const itemTotal = parseInt(product.Product_price) * (parseInt(String(quantity)) || 1);
-    const deliveryPrice = deliveryPricing[wilayaName]?.[deliveryType] || 0;
-    const total = itemTotal + deliveryPrice;
-    
-    const orderData = {
-      orderDetails: {
-        fullName: form.fullName,
-        phone: form.phone,
-        wilaya: wilayaName,
-        baladiya: form.baladiya,
-        subtotal: itemTotal,
-        deliveryType,
-        deliveryPrice,
-        totalPrice: total,
-      },
-      cartItems: [{
-        ...product,
-        selectedSize: hasSizes ? selectedSize : undefined,
-        selectedColor: selectedColor || undefined,
-        quantity: parseInt(String(quantity)) || 1,
-      }],
-    };
 
+    setSubmitting(true);
     try {
-      const response = await fetch(`${API_URL.replace(/\/$/, '')}/api/order-submission`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
+      const wilayaObj = wilayas.find(w => w.id === parseInt(form.wilayaId, 10));
+      const wilayaName = wilayaObj ? wilayaObj.name : '';
+      
+      const itemTotal = parseInt(product.Product_price || 0) * quantity;
+      const deliveryPrice = deliveryPricing[wilayaName]?.[deliveryType] || 0;
+      const total = itemTotal + deliveryPrice;
+      
+      const orderData = {
+        clientName: form.fullName,
+        email: '',
+        phone: form.phone,
+        address: form.address || `${form.baladiya}, ${wilayaName}`,
+        city: form.baladiya,
+        wilaya: wilayaName,
+        items: [{
+          productId: product._id || product.id || productId,
+          productName: product.Product_name,
+          price: parseFloat(product.Product_price) || 0,
+          quantity: parseInt(quantity) || 1,
+          size: hasSizes && selectedSize ? selectedSize : undefined,
+          color: hasColors && selectedColor ? selectedColor : undefined,
+        }],
+        total: parseFloat(total) || 0,
+        subtotal: parseFloat(itemTotal) || 0,
+        deliveryType: deliveryType,
+        deliveryPrice: parseFloat(deliveryPrice) || 0,
+        status: 'pending',
+      };
 
-      if (!response.ok) {
-        const text = await response.text();
-        alert(`Failed to submit order: ${text}`);
-        return;
-      }
-
+      await createOrderRecord(orderData);
       setSuccessOpen(true);
-      setTimeout(() => {
-        setSuccessOpen(false);
-        navigate('/');
-      }, 2000);
-    } catch (error) {
-      // Submission error occurred
-      alert('An error occurred while submitting the order.');
+      
+      setForm({
+        fullName: '',
+        phone: '',
+        wilayaId: '',
+        baladiya: '',
+        address: '',
+      });
+      setQuantity(1);
+    } catch (err) {
+      alert('Échec de la commande: ' + err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleDialogClose = () => {
-    setSuccessOpen(false);
-    navigate('/');
+  const getImageUrl = (img) => {
+    if (typeof img === 'string') return img;
+    return img?.url || img?.formats?.medium?.url || '/default-image.png';
   };
 
-  const hasSizes = Array.isArray(product?.Product_sizes) && product.Product_sizes.length > 0;
-  const images = product?.Product_img || [];
-  const imgObj = images[selectedImage];
-  const url = imgObj?.formats?.medium?.url || imgObj?.url;
-  let imageUrl = buildImgUrl(url);
+  const currentImage = images[selectedImage] ? getImageUrl(images[selectedImage]) : '/default-image.png';
 
-  const productOptionsLabel = safeT(t('productOptions'), currentLanguage === 'ar' ? 'خيارات المنتج' : 'Product Options');
-  const sizeLabel = safeT(t('size'), currentLanguage === 'ar' ? 'المقاس' : 'Size');
-  const selectedSizeLabel = safeT(t('selectedSize'), currentLanguage === 'ar' ? 'المقاس المختار' : 'Selected Size');
-  const quantityLabel = safeT(t('quantity'), currentLanguage === 'ar' ? 'الكمية' : 'Quantity');
+  // Get delivery prices for selected wilaya
+  const getDeliveryPrices = () => {
+    if (!form.wilayaId) return { bureau: 0, domicile: 0 };
+    const wilayaObj = wilayas.find(w => w.id === parseInt(form.wilayaId, 10));
+    const wilayaName = wilayaObj ? wilayaObj.name : '';
+    return {
+      bureau: deliveryPricing[wilayaName]?.bureau || 0,
+      domicile: deliveryPricing[wilayaName]?.domicile || 0,
+    };
+  };
 
-  const orderSummarySelectedSizeLabel = t('selectedSize');
-  const orderSummaryQuantityLabel = t('quantity');
+  const deliveryPrices = getDeliveryPrices();
 
-  if (error) {
-    return (
-      <Container sx={{ py: 9 }}>
-        <Typography variant="h6" sx={{ textAlign: 'center', my: 4, color: 'error.main' }}>
-          Error loading products. Please try again later.
-        </Typography>
-        <Button onClick={() => navigate('/')} variant="contained" sx={{ display: 'block', mx: 'auto' }}>
-          Back to Home
-        </Button>
-      </Container>
-    );
-  }
+  // Calculate total price
+  const calculateTotal = () => {
+    if (!product) return 0;
+    const itemTotal = parseInt(product.Product_price || 0) * quantity;
+    const wilayaObj = wilayas.find(w => w.id === parseInt(form.wilayaId, 10));
+    const wilayaName = wilayaObj ? wilayaObj.name : '';
+    const deliveryPrice = deliveryPricing[wilayaName]?.[deliveryType] || 0;
+    return itemTotal + deliveryPrice;
+  };
 
-  if (isLoading) {
-    return (
-      <Container sx={{ py: 9 }}>
-        <Typography variant="h6" sx={{ textAlign: 'center', my: 4 }}>
-          Loading product...
-        </Typography>
-      </Container>
-    );
-  }
-
-  if (!product) {
-    return (
-      <Container sx={{ py: 9 }}>
-        <Typography variant="h6" sx={{ textAlign: 'center', my: 4, color: 'error.main' }}>
-          Product not found
-        </Typography>
-        <Button onClick={() => navigate('/')} variant="contained" sx={{ display: 'block', mx: 'auto' }}>
-          Back to Home
-        </Button>
-      </Container>
-    );
-  }
+  const totalPrice = calculateTotal();
+  const itemTotal = product ? parseInt(product.Product_price || 0) * quantity : 0;
 
   return (
     <Box sx={{ 
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)',
-      py: 4
+      background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%)', 
+      minHeight: '100vh', 
+      color: '#fff',
+      pt: { xs: 10, sm: 12 },
+      pb: 8
     }}>
-      <Container maxWidth="xl">
-        {/* Back Button */}
+      <Container maxWidth="lg">
         <Button
           startIcon={<ArrowBack />}
-          onClick={() => navigate('/')}
-          sx={{
-            mb: 3,
-            color: '#fff',
+          onClick={() => navigate(-1)}
+          sx={{ 
+            mb: 4,
+            color: '#94a3b8',
             '&:hover': {
-              background: 'rgba(255,255,255,0.1)',
-            }
+              color: '#00d4ff',
+              backgroundColor: 'rgba(0, 212, 255, 0.1)',
+            },
           }}
         >
-          Back to Products
+          Retour
         </Button>
 
         <Grid container spacing={4}>
-          {/* Product Details Section */}
-          <Grid item xs={12} lg={6}>
-            <Paper elevation={8} sx={{
-              background: 'rgba(255,255,255,0.05)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 4,
-              p: 4,
-              height: 'fit-content'
+          {/* Image Section */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ 
+              background: 'rgba(17, 17, 17, 0.8)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(0, 212, 255, 0.2)',
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+              overflow: 'hidden',
+              position: 'relative',
             }}>
-              {/* Product Image Section */}
-              <Box 
-                sx={{ 
-                  width: '100%',
-                  height: { xs: '300px', sm: '400px', md: '500px' },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  borderRadius: 3,
-                  background: 'rgba(0,0,0,0.4)',
-                  border: '2px solid rgba(255,255,255,0.1)',
-                  mb: 3,
-                }}
-              >
-                {/* Navigation arrows */}
-                {images.length > 1 && (
-                  <>
-                    <IconButton
-                      onClick={prevImage}
-                      sx={{
-                        position: 'absolute',
-                        left: 8,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        zIndex: 10,
-                        background: 'rgba(0,0,0,0.8)',
-                        color: '#fff',
-                        '&:hover': {
-                          background: 'rgba(0,0,0,0.9)',
-                        }
-                      }}
-                    >
-                      <NavigateBefore />
-                    </IconButton>
-                    <IconButton
-                      onClick={nextImage}
-                      sx={{
-                        position: 'absolute',
-                        right: 8,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        zIndex: 10,
-                        background: 'rgba(0,0,0,0.8)',
-                        color: '#fff',
-                        '&:hover': {
-                          background: 'rgba(0,0,0,0.9)',
-                        }
-                      }}
-                    >
-                      <NavigateNext />
-                    </IconButton>
-                  </>
-                )}
-
-                {/* Image thumbnails */}
-                {images.length > 1 && (
-                  <Box sx={{
-                    position: 'absolute',
-                    bottom: 8,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    display: 'flex',
-                    gap: 1,
-                    zIndex: 10,
-                  }}>
-                    {images.map((_, idx) => (
-                      <Box
-                        key={idx}
-                        onClick={() => setSelectedImage(idx)}
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          background: selectedImage === idx ? '#10b981' : 'rgba(255,255,255,0.4)',
-                          cursor: 'pointer',
-                          transition: 'background 0.2s',
-                          '&:hover': {
-                            background: selectedImage === idx ? '#10b981' : 'rgba(255,255,255,0.6)',
-                          }
-                        }}
-                      />
-                    ))}
-                  </Box>
-                )}
-
-                {/* Main zoomable image */}
-                <img 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%',
-                    objectFit: 'cover',
-                    cursor: 'zoom-in',
-                    transform: isZoomed ? 'scale(1.5)' : 'scale(1)',
-                    transition: 'transform 0.3s ease-in-out',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    zIndex: 2,
-                  }} 
-                  src={imageUrl}
-                  alt={product.Product_name}
-                  onClick={() => setIsZoomed(!isZoomed)}
-                />
-              </Box>
-
-              {/* Product Info */}
-              <Stack spacing={3}>
-                <Box>
-                  <Chip 
-                    label={currentLanguage === 'ar' && product.Product_category_ar ? product.Product_category_ar : product.Product_category} 
-                    sx={{ 
-                      background: 'rgba(16,185,129,0.2)', 
-                      color: '#10b981',
-                      fontWeight: 600,
-                      mb: 2
-                    }} 
-                  />
-                  <Typography 
-                    variant="h3" 
-                    sx={{ 
-                      fontSize: { xs: '1.8rem', sm: '2.5rem', md: '3rem' },
-                      fontWeight: 700,
-                      color: '#fff',
-                      letterSpacing: '0.01em',
-                      mb: 1,
+              {images.length > 1 && (
+                <>
+                  <IconButton
+                    onClick={prevImage}
+                    sx={{
+                      position: 'absolute',
+                      left: 16,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 2,
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      backdropFilter: 'blur(10px)',
+                      color: '#00d4ff',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                      '&:hover': { 
+                        background: 'rgba(0, 212, 255, 0.2)',
+                        borderColor: '#00d4ff',
+                      }
                     }}
                   >
-                    {currentLanguage === 'ar' && product.Product_name_ar ? product.Product_name_ar : product.Product_name}
-                  </Typography>
-                  
+                    <NavigateBefore />
+                  </IconButton>
+                  <IconButton
+                    onClick={nextImage}
+                    sx={{
+                      position: 'absolute',
+                      right: 16,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      zIndex: 2,
+                      background: 'rgba(0, 0, 0, 0.6)',
+                      backdropFilter: 'blur(10px)',
+                      color: '#00d4ff',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                      '&:hover': { 
+                        background: 'rgba(0, 212, 255, 0.2)',
+                        borderColor: '#00d4ff',
+                      }
+                    }}
+                  >
+                    <NavigateNext />
+                  </IconButton>
+                </>
+              )}
+              <Box
+                component="img"
+                src={currentImage}
+                alt={product.Product_name}
+                sx={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  maxHeight: { xs: 400, md: 600 },
+                  objectFit: 'contain',
+                }}
+                loading="lazy"
+              />
+              {images.length > 1 && (
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 1, 
+                  p: 2, 
+                  justifyContent: 'center', 
+                  flexWrap: 'wrap',
+                  background: 'rgba(0, 0, 0, 0.5)',
+                }}>
+                  {images.map((img, idx) => (
+                    <Box
+                      key={idx}
+                      component="img"
+                      src={getImageUrl(img)}
+                      alt={`${product.Product_name} ${idx + 1}`}
+                      onClick={() => setSelectedImage(idx)}
+                      sx={{
+                        width: 60,
+                        height: 60,
+                        objectFit: 'cover',
+                        borderRadius: 2,
+                        cursor: 'pointer',
+                        border: selectedImage === idx ? '2px solid #00d4ff' : '2px solid rgba(0, 212, 255, 0.3)',
+                        opacity: selectedImage === idx ? 1 : 0.6,
+                        transition: 'all 0.3s ease',
+                        '&:hover': { 
+                          opacity: 1,
+                          borderColor: '#00d4ff',
+                        }
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
+            </Card>
+          </Grid>
+
+          {/* Product Info Section */}
+          <Grid item xs={12} md={6}>
+            <Stack spacing={3}>
+              <Typography 
+                variant="h3" 
+                component="h1" 
+                sx={{ 
+                  fontWeight: 900,
+                  background: 'linear-gradient(135deg, #00d4ff 0%, #ffffff 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+                }}
+              >
+                {product.Product_name}
+              </Typography>
+              
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  color: '#00d4ff', 
+                  fontWeight: 800,
+                  textShadow: '0 0 20px rgba(0, 212, 255, 0.5)',
+                  fontSize: { xs: '2rem', sm: '2.5rem' },
+                }}
+              >
+                {product.Product_price?.toLocaleString()} DZD
+              </Typography>
+
+              {product.Product_desctiption && (
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    color: '#94a3b8',
+                    lineHeight: 1.8,
+                    fontSize: { xs: '1rem', sm: '1.1rem' },
+                  }}
+                >
+                  {product.Product_desctiption}
+                </Typography>
+              )}
+
+              <Divider sx={{ borderColor: 'rgba(0, 212, 255, 0.2)' }} />
+
+              {/* Sizes */}
+              {hasSizes && (
+                <Box>
                   <Typography 
-                    variant="h4" 
+                    variant="h6" 
+                    gutterBottom 
                     sx={{ 
-                      fontSize: { xs: '1.5rem', sm: '2rem' },
-                      fontWeight: 800,
-                      color: '#f59e0b',
+                      fontWeight: 700,
+                      color: '#00d4ff',
                       mb: 2,
                     }}
                   >
-                    {product.Product_price} DA
+                    Tailles Disponibles:
                   </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                    {product.Product_sizes.map((size) => (
+                      <Chip
+                        key={size}
+                        label={size}
+                        onClick={() => setSelectedSize(size)}
+                        sx={{
+                          background: selectedSize === size 
+                            ? 'linear-gradient(135deg, #00d4ff 0%, #00b8d4 100%)'
+                            : 'rgba(0, 212, 255, 0.1)',
+                          color: selectedSize === size ? '#000' : '#00d4ff',
+                          fontWeight: 700,
+                          border: selectedSize === size 
+                            ? 'none' 
+                            : '1px solid rgba(0, 212, 255, 0.3)',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            background: selectedSize === size 
+                              ? 'linear-gradient(135deg, #00b8d4 0%, #00a8cc 100%)'
+                              : 'rgba(0, 212, 255, 0.2)',
+                            transform: 'translateY(-2px)',
+                          },
+                        }}
+                      />
+                    ))}
+                  </Stack>
                 </Box>
-                
+              )}
+
+              {/* Colors */}
+              {hasColors && (
+                <Box>
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 700,
+                      color: '#00d4ff',
+                      mb: 2,
+                    }}
+                  >
+                    Couleurs Disponibles:
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+                    {product.Product_color.map((color, idx) => (
+                      <Box
+                        key={idx}
+                        onClick={() => setSelectedColor(color)}
+                        sx={{
+                          width: 45,
+                          height: 45,
+                          borderRadius: '50%',
+                          backgroundColor: color,
+                          border: selectedColor === color 
+                            ? '3px solid #00d4ff' 
+                            : '2px solid rgba(0, 212, 255, 0.3)',
+                          cursor: 'pointer',
+                          boxShadow: selectedColor === color 
+                            ? '0 0 20px rgba(0, 212, 255, 0.6)' 
+                            : '0 0 10px rgba(0, 212, 255, 0.2)',
+                          transition: 'all 0.3s ease',
+                          '&:hover': {
+                            transform: 'scale(1.1)',
+                            boxShadow: '0 0 25px rgba(0, 212, 255, 0.5)',
+                          },
+                        }}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+
+              {/* Quantity */}
+              <Box>
                 <Typography 
-                  variant="body1" 
-                  sx={{
-                    fontSize: { xs: '1rem', sm: '1.1rem' },
-                    color: '#e5e7eb',
-                    lineHeight: 1.6,
-                    mb: 3,
+                  variant="h6" 
+                  gutterBottom 
+                  sx={{ 
+                    fontWeight: 700,
+                    color: '#00d4ff',
+                    mb: 2,
                   }}
                 >
-                  {currentLanguage === 'ar' && product.Product_desctiption_ar ? product.Product_desctiption_ar : product.Product_desctiption}
+                  Quantité:
                 </Typography>
-              </Stack>
-            </Paper>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Button
+                    variant="outlined"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                    sx={{
+                      borderColor: 'rgba(0, 212, 255, 0.3)',
+                      color: '#00d4ff',
+                      minWidth: 50,
+                      '&:hover': {
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                      },
+                      '&.Mui-disabled': {
+                        borderColor: 'rgba(0, 212, 255, 0.1)',
+                        color: 'rgba(0, 212, 255, 0.3)',
+                      },
+                    }}
+                  >
+                    -
+                  </Button>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      color: '#ffffff',
+                      fontWeight: 700,
+                      minWidth: 50,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {quantity}
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setQuantity(quantity + 1)}
+                    sx={{
+                      borderColor: 'rgba(0, 212, 255, 0.3)',
+                      color: '#00d4ff',
+                      minWidth: 50,
+                      '&:hover': {
+                        borderColor: '#00d4ff',
+                        backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                      },
+                    }}
+                  >
+                    +
+                  </Button>
+                </Stack>
+              </Box>
+            </Stack>
           </Grid>
+        </Grid>
 
-          {/* Order Form Section */}
-          <Grid item xs={12} lg={6}>
-            <Paper elevation={8} sx={{
-              background: 'rgba(255,255,255,0.05)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 4,
-              p: 4,
-              height: 'fit-content'
-            }}>
-              <Typography variant="h4" sx={{ 
-                color: '#fff', 
-                mb: 3,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }}>
-                <Payment sx={{ color: '#10b981' }} />
-                {t('orderForm')}
-              </Typography>
-              
-              <form onSubmit={handleSubmitOrder}>
-                <Stack spacing={3}>
+        {/* Order Form Section */}
+        <Card sx={{ 
+          mt: 6,
+          background: 'rgba(17, 17, 17, 0.8)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0, 212, 255, 0.2)',
+          borderRadius: 3,
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+        }}>
+          <CardContent sx={{ p: 4 }}>
+            <Typography 
+              variant="h4" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 800,
+                mb: 4,
+                background: 'linear-gradient(135deg, #00d4ff 0%, #ffffff 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              Passer une Commande
+            </Typography>
+            
+            <form onSubmit={handleSubmitOrder}>
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
                   <TextField
-                    label={t('fullName')}
+                    fullWidth
+                    label="Nom Complet *"
                     name="fullName"
                     value={form.fullName}
                     onChange={handleChange}
                     required
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        color: '#fff',
+                        backgroundColor: 'rgba(26, 26, 26, 0.8)',
+                        color: '#ffffff',
                         '& fieldset': {
-                          borderColor: 'rgba(255,255,255,0.3)',
+                          borderColor: 'rgba(0, 212, 255, 0.3)',
                         },
                         '&:hover fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: 'rgba(0, 212, 255, 0.5)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: '#00d4ff',
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: '#e5e7eb',
+                        color: '#94a3b8',
+                        '&.Mui-focused': {
+                          color: '#00d4ff',
+                        },
                       },
                     }}
                   />
-                  
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <TextField
-                    label={t('phoneNumber')}
+                    fullWidth
+                    label="Téléphone *"
                     name="phone"
                     value={form.phone}
                     onChange={handleChange}
                     required
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        color: '#fff',
+                        backgroundColor: 'rgba(26, 26, 26, 0.8)',
+                        color: '#ffffff',
                         '& fieldset': {
-                          borderColor: 'rgba(255,255,255,0.3)',
+                          borderColor: 'rgba(0, 212, 255, 0.3)',
                         },
                         '&:hover fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: 'rgba(0, 212, 255, 0.5)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: '#00d4ff',
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: '#e5e7eb',
+                        color: '#94a3b8',
+                        '&.Mui-focused': {
+                          color: '#00d4ff',
+                        },
                       },
                     }}
                   />
-                  
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <TextField
+                    fullWidth
                     select
-                    label={t('wilaya')}
+                    label="Wilaya *"
                     name="wilayaId"
                     value={form.wilayaId}
                     onChange={handleChange}
                     required
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        color: '#fff',
+                        backgroundColor: 'rgba(26, 26, 26, 0.8)',
+                        color: '#ffffff',
                         '& fieldset': {
-                          borderColor: 'rgba(255,255,255,0.3)',
+                          borderColor: 'rgba(0, 212, 255, 0.3)',
                         },
                         '&:hover fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: 'rgba(0, 212, 255, 0.5)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: '#00d4ff',
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: '#e5e7eb',
+                        color: '#94a3b8',
+                        '&.Mui-focused': {
+                          color: '#00d4ff',
+                        },
                       },
                     }}
                   >
-                    {wilayas.map(w => (
-                      <MenuItem key={w.id} value={w.id}>{w.name}</MenuItem>
+                    {wilayas.map((wilaya) => (
+                      <MenuItem 
+                        key={wilaya.id} 
+                        value={wilaya.id}
+                        sx={{
+                          backgroundColor: 'rgba(17, 17, 17, 0.95)',
+                          color: '#ffffff',
+                          '&:hover': {
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                          },
+                        }}
+                      >
+                        {wilaya.name}
+                      </MenuItem>
                     ))}
                   </TextField>
-                  
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <TextField
-                    label={t('baladiya')}
+                    fullWidth
+                    label="Commune/Baladiya"
                     name="baladiya"
                     value={form.baladiya}
                     onChange={handleChange}
-                    required
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        color: '#fff',
+                        backgroundColor: 'rgba(26, 26, 26, 0.8)',
+                        color: '#ffffff',
                         '& fieldset': {
-                          borderColor: 'rgba(255,255,255,0.3)',
+                          borderColor: 'rgba(0, 212, 255, 0.3)',
                         },
                         '&:hover fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: 'rgba(0, 212, 255, 0.5)',
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#10b981',
+                          borderColor: '#00d4ff',
                         },
                       },
                       '& .MuiInputLabel-root': {
-                        color: '#e5e7eb',
+                        color: '#94a3b8',
+                        '&.Mui-focused': {
+                          color: '#00d4ff',
+                        },
                       },
                     }}
                   />
-                  
-                  <Box>
-                    <Typography variant="body1" sx={{ color: '#fff', mb: 1 }}>
-                      Delivery Type:
-                    </Typography>
-                    <RadioGroup
-                      row
-                      value={deliveryType}
-                      onChange={handleDeliveryTypeChange}
-                      name="deliveryType"
-                    >
-                      <FormControlLabel 
-                        value="bureau" 
-                        control={<Radio sx={{ color: '#10b981' }} />} 
-                        label={t('bureau')} 
-                        sx={{ color: '#fff' }}
-                      />
-                      <FormControlLabel 
-                        value="domicile" 
-                        control={<Radio sx={{ color: '#10b981' }} />} 
-                        label={t('domicile')} 
-                        sx={{ color: '#fff' }}
-                      />
-                    </RadioGroup>
-                  </Box>
-
-                  <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)' }} />
-
-                  {/* Size and Color Selectors Row */}
-                  {(hasSizes || (Array.isArray(product?.Product_color) && product.Product_color.length > 0)) && (
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                      {hasSizes && (
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="body1" sx={{ fontWeight: 500, color: '#fff', mb: 1 }}>
-                            {sizeLabel}
-                          </Typography>
-                          <TextField
-                            select
-                            value={selectedSize}
-                            onChange={(e) => setSelectedSize(e.target.value)}
-                            sx={{
-                              width: '100%',
-                              '& .MuiOutlinedInput-root': {
-                                color: '#fff',
-                                '& fieldset': {
-                                  borderColor: 'rgba(255,255,255,0.3)',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: '#10b981',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#10b981',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                color: '#e5e7eb',
-                              },
-                            }}
-                          >
-                            {product.Product_sizes.map(size => (
-                              <MenuItem key={size} value={size}>{size}</MenuItem>
-                            ))}
-                          </TextField>
-                        </Box>
-                      )}
-                      {Array.isArray(product?.Product_color) && product.Product_color.length > 0 && (
-                        <Box sx={{ flex: 1 }}>
-                          <Typography variant="body1" sx={{ fontWeight: 500, color: '#fff', mb: 1 }}>
-                            {t('color') || (currentLanguage === 'ar' ? 'اللون' : 'Color')}
-                          </Typography>
-                          <TextField
-                            select
-                            value={selectedColor}
-                            onChange={(e) => setSelectedColor(e.target.value)}
-                            sx={{
-                              width: '100%',
-                              '& .MuiOutlinedInput-root': {
-                                color: '#fff',
-                                '& fieldset': {
-                                  borderColor: 'rgba(255,255,255,0.3)',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: '#10b981',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: '#10b981',
-                                },
-                              },
-                              '& .MuiInputLabel-root': {
-                                color: '#e5e7eb',
-                              },
-                            }}
-                          >
-                            {product.Product_color.map(color => (
-                              <MenuItem key={color} value={color}>
-                                <span style={{
-                                  display: 'inline-block',
-                                  width: 18,
-                                  height: 18,
-                                  borderRadius: '50%',
-                                  background: color.toLowerCase(),
-                                  border: '1px solid #ccc',
-                                  marginRight: 8,
-                                  verticalAlign: 'middle',
-                                }} />
-                                {t(color.toLowerCase()) || color}
-                              </MenuItem>
-                            ))}
-                          </TextField>
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-                  {/* Quantity Selector */}
-                  <Box>
-                    <Typography variant="body1" sx={{ fontWeight: 500, color: '#fff', mb: 1 }}>
-                      {quantityLabel}
-                    </Typography>
-                    <TextField
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === '') {
-                          setQuantity(1); // Default to 1 if empty
-                        } else {
-                          const numValue = parseInt(value);
-                          if (!isNaN(numValue) && numValue > 0) {
-                            setQuantity(numValue);
-                          }
-                        }
-                      }}
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          color: '#fff',
-                          '& fieldset': {
-                            borderColor: 'rgba(255,255,255,0.3)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#10b981',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#10b981',
-                          },
-                        },
-                        '& .MuiInputLabel-root': {
-                          color: '#e5e7eb',
-                        },
-                      }}
-                    />
-                  </Box>
-                  
-                  <Divider sx={{ borderColor: 'rgba(255,255,255,0.2)' }} />
-
-                  {/* Order Summary */}
-                  <Box sx={{ 
-                    p: 3, 
-                    background: 'rgba(0,0,0,0.3)', 
-                    borderRadius: 2, 
-                    border: '1px solid rgba(255,255,255,0.1)' 
-                  }}>
-                    <Typography variant="h6" sx={{ color: '#fff', mb: 2 }}>
-                      {t('orderSummary')}
-                    </Typography>
-                    
-                    <Box sx={{ mb: 2, p: 2, border: '1px solid rgba(255,255,255,0.1)', borderRadius: 1 }}>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#fff' }}>
-                        {product.Product_name}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
-                        {orderSummaryQuantityLabel}: {quantity} × {product.Product_price} DA = {parseInt(product.Product_price) * (parseInt(String(quantity)) || 1)} DA
-                      </Typography>
-                      {selectedSize && (
-                        <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
-                          {orderSummarySelectedSizeLabel}: {selectedSize}
-                        </Typography>
-                      )}
-                      {selectedColor && (
-                        <Typography variant="body2" sx={{ color: '#e5e7eb', display: 'flex', alignItems: 'center' }}>
-                          {t('color') || (currentLanguage === 'ar' ? 'اللون' : 'Color')}: {t(selectedColor.toLowerCase()) || selectedColor}
-                          <span style={{
-                            display: 'inline-block',
-                            width: 14,
-                            height: 14,
-                            borderRadius: '50%',
-                            background: selectedColor.toLowerCase(),
-                            border: '1px solid #ccc',
-                            marginLeft: 6,
-                            verticalAlign: 'middle',
-                          }} />
-                        </Typography>
-                      )}
-                    </Box>
-                    
-                    <Box sx={{ p: 2, background: 'rgba(16,185,129,0.1)', borderRadius: 1, border: '1px solid rgba(16,185,129,0.3)' }}>
-                      <Typography variant="body1" sx={{ color: '#fff' }}>
-                        <strong>{t('subtotal')}:</strong> {parseInt(product.Product_price) * (parseInt(String(quantity)) || 1)} DA
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: '#fff' }}>
-                        <strong>{t('delivery')} ({t(deliveryType)}):</strong> {deliveryPricing[wilayas.find(w => w.id === parseInt(form.wilayaId, 10))?.name]?.[deliveryType] || 0} DA
-                      </Typography>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#10b981' }}>
-                        <strong>{t('total')}:</strong> {(parseInt(product.Product_price) * (parseInt(String(quantity)) || 1)) + (deliveryPricing[wilayas.find(w => w.id === parseInt(form.wilayaId, 10))?.name]?.[deliveryType] || 0)} DA
-                      </Typography>
-                    </Box>
-                  </Box>
-                  
-                  <Button 
-                    type="submit" 
-                    variant="contained" 
-                    size="large"
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Adresse Complète"
+                    name="address"
+                    multiline
+                    rows={2}
+                    value={form.address}
+                    onChange={handleChange}
                     sx={{
-                      background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)',
-                      color: '#fff',
-                      textTransform: 'capitalize',
-                      py: 1.5,
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #059669 0%, #047857 100%)',
-                      }
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: 'rgba(26, 26, 26, 0.8)',
+                        color: '#ffffff',
+                        '& fieldset': {
+                          borderColor: 'rgba(0, 212, 255, 0.3)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: 'rgba(0, 212, 255, 0.5)',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#00d4ff',
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        color: '#94a3b8',
+                        '&.Mui-focused': {
+                          color: '#00d4ff',
+                        },
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography 
+                    variant="h6" 
+                    gutterBottom 
+                    sx={{ 
+                      fontWeight: 700,
+                      color: '#00d4ff',
+                      mb: 2,
                     }}
                   >
-                    {t('submitOrder')}
+                    Type de Livraison:
+                  </Typography>
+                  <RadioGroup
+                    name="deliveryType"
+                    value={deliveryType}
+                    onChange={(e) => setDeliveryType(e.target.value)}
+                  >
+                    <FormControlLabel 
+                      value="bureau" 
+                      control={
+                        <Radio 
+                          sx={{
+                            color: '#94a3b8',
+                            '&.Mui-checked': {
+                              color: '#00d4ff',
+                            },
+                          }}
+                        />
+                      } 
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography sx={{ color: '#ffffff' }}>Bureau de Poste</Typography>
+                          {deliveryPrices.bureau > 0 && (
+                            <Chip 
+                              label={`${deliveryPrices.bureau.toLocaleString()} DZD`}
+                              size="small"
+                              sx={{
+                                backgroundColor: 'rgba(0, 212, 255, 0.2)',
+                                color: '#00d4ff',
+                                fontWeight: 700,
+                                border: '1px solid rgba(0, 212, 255, 0.4)',
+                              }}
+                            />
+                          )}
+                        </Box>
+                      }
+                      sx={{ mb: 1 }}
+                    />
+                    <FormControlLabel 
+                      value="domicile" 
+                      control={
+                        <Radio 
+                          sx={{
+                            color: '#94a3b8',
+                            '&.Mui-checked': {
+                              color: '#00d4ff',
+                            },
+                          }}
+                        />
+                      } 
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography sx={{ color: '#ffffff' }}>Domicile</Typography>
+                          {deliveryPrices.domicile > 0 && (
+                            <Chip 
+                              label={`${deliveryPrices.domicile.toLocaleString()} DZD`}
+                              size="small"
+                              sx={{
+                                backgroundColor: 'rgba(0, 212, 255, 0.2)',
+                                color: '#00d4ff',
+                                fontWeight: 700,
+                                border: '1px solid rgba(0, 212, 255, 0.4)',
+                              }}
+                            />
+                          )}
+                        </Box>
+                      }
+                    />
+                  </RadioGroup>
+                </Grid>
+                
+                {/* Total Price Section */}
+                <Grid item xs={12}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 3,
+                      background: 'rgba(0, 212, 255, 0.1)',
+                      border: '2px solid rgba(0, 212, 255, 0.3)',
+                      borderRadius: 2,
+                      mb: 2,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                      <Box>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: '#94a3b8', 
+                            mb: 0.5,
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          Sous-total ({quantity} {quantity > 1 ? 'articles' : 'article'})
+                        </Typography>
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            color: '#ffffff',
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                          }}
+                        >
+                          {itemTotal.toLocaleString()} DZD
+                        </Typography>
+                      </Box>
+                      {form.wilayaId && (
+                        <Box>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              color: '#94a3b8', 
+                              mb: 0.5,
+                              fontSize: '0.9rem',
+                            }}
+                          >
+                            Livraison
+                          </Typography>
+                          <Typography 
+                            variant="h6" 
+                            sx={{ 
+                              color: '#00d4ff',
+                              fontWeight: 600,
+                              fontSize: '1rem',
+                            }}
+                          >
+                            {deliveryPrices[deliveryType]?.toLocaleString() || '0'} DZD
+                          </Typography>
+                        </Box>
+                      )}
+                      <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(0, 212, 255, 0.3)', display: { xs: 'none', sm: 'block' } }} />
+                      <Box>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: '#94a3b8', 
+                            mb: 0.5,
+                            fontSize: '0.9rem',
+                          }}
+                        >
+                          Total
+                        </Typography>
+                        <Typography 
+                          variant="h5" 
+                          sx={{ 
+                            background: 'linear-gradient(135deg, #00d4ff 0%, #ffffff 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            backgroundClip: 'text',
+                            fontWeight: 800,
+                            fontSize: { xs: '1.5rem', sm: '1.75rem' },
+                          }}
+                        >
+                          {totalPrice.toLocaleString()} DZD
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Paper>
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    disabled={submitting}
+                    sx={{
+                      py: 2,
+                      background: 'linear-gradient(135deg, #00d4ff 0%, #00b8d4 100%)',
+                      color: '#000',
+                      fontWeight: 800,
+                      fontSize: '1.1rem',
+                      borderRadius: 2,
+                      boxShadow: '0 4px 20px rgba(0, 212, 255, 0.5)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #00b8d4 0%, #00a8cc 100%)',
+                        boxShadow: '0 6px 30px rgba(0, 212, 255, 0.7)',
+                        transform: 'translateY(-2px)',
+                      },
+                      '&.Mui-disabled': {
+                        background: 'rgba(0, 212, 255, 0.3)',
+                        color: 'rgba(0, 0, 0, 0.5)',
+                      },
+                    }}
+                  >
+                    {submitting ? (
+                      <CircularProgress size={24} sx={{ color: '#000' }} />
+                    ) : (
+                      'Passer la Commande'
+                    )}
                   </Button>
-                </Stack>
-              </form>
-            </Paper>
-          </Grid>
-        </Grid>
+                </Grid>
+              </Grid>
+            </form>
+          </CardContent>
+        </Card>
 
-        {/* Features Section */}
-        <Box sx={{ mt: 6 }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={4} sx={{
-                background: 'rgba(255,255,255,0.05)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 3,
-                p: 3,
-                textAlign: 'center',
-                height: '100%'
+        {/* Success Dialog */}
+        <Dialog 
+          open={successOpen} 
+          onClose={() => setSuccessOpen(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: 3,
+              background: 'rgba(17, 17, 17, 0.98)',
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(16, 185, 129, 0.2)',
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              background: 'linear-gradient(135deg, #000000 0%, #111111 50%, #000000 100%)',
+              color: '#fff',
+              fontWeight: 800,
+              py: 2.5,
+              px: 3,
+              borderBottom: '2px solid rgba(16, 185, 129, 0.3)',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <CheckCircle sx={{ color: '#10b981', fontSize: 40 }} />
+              <Typography sx={{ 
+                background: 'linear-gradient(135deg, #10b981 0%, #ffffff 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontWeight: 800,
               }}>
-                <LocalShipping sx={{ fontSize: 40, color: '#10b981', mb: 2 }} />
-                <Typography variant="h6" sx={{ color: '#fff', mb: 1 }}>
-                  Fast Delivery
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
-                  Quick and reliable delivery across Algeria
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={4} sx={{
-                background: 'rgba(255,255,255,0.05)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 3,
-                p: 3,
-                textAlign: 'center',
-                height: '100%'
-              }}>
-                <Payment sx={{ fontSize: 40, color: '#f59e0b', mb: 2 }} />
-                <Typography variant="h6" sx={{ color: '#fff', mb: 1 }}>
-                  Secure Payment
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
-                  Safe and secure payment methods
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Paper elevation={4} sx={{
-                background: 'rgba(255,255,255,0.05)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 3,
-                p: 3,
-                textAlign: 'center',
-                height: '100%'
-              }}>
-                <Security sx={{ fontSize: 40, color: '#3b82f6', mb: 2 }} />
-                <Typography variant="h6" sx={{ color: '#fff', mb: 1 }}>
-                  Quality Guarantee
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#e5e7eb' }}>
-                  High-quality products with warranty
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Box>
+                Commande Enregistrée!
+              </Typography>
+            </Box>
+          </DialogTitle>
+          <DialogContent sx={{ p: 3, backgroundColor: '#0a0a0a' }}>
+            <Typography sx={{ color: '#e2e8f0', fontSize: '1.1rem' }}>
+              Votre commande a été enregistrée avec succès. Nous vous contacterons bientôt!
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, borderTop: '1px solid rgba(16, 185, 129, 0.1)', backgroundColor: '#0a0a0a' }}>
+            <Button 
+              onClick={() => { setSuccessOpen(false); navigate('/'); }}
+              sx={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                color: '#fff',
+                fontWeight: 800,
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                },
+              }}
+            >
+              OK
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
-
-      {/* Success Dialog */}
-      <Dialog open={successOpen} onClose={handleDialogClose}>
-        <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-          <CheckCircle sx={{ fontSize: 60, mb: 1, color: '#10b981' }} />
-        </DialogTitle>
-        <DialogContent sx={{ textAlign: 'center' }}>
-          <Typography variant="h5" sx={{ mb: 2 }}>{t('orderSuccess')}</Typography>
-          <Typography variant="body1">{t('thankYouForOrder')}</Typography>
-        </DialogContent>
-      </Dialog>
     </Box>
   );
-} 
+}
+
+export default ProductDetailsPage;

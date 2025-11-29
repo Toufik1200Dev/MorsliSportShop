@@ -1,83 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-*{
-  font-family: 'Open Sans', sans-serif;
-}
-
-.border{
-  border: 1px solid red;
-}
-
-.MyButton{
-  border-radius: 5px !important;
-  border: 1px solid #888 !important;
-  text-transform : capitalize !important;
-  padding-top: 7px !important;
-  padding-bottom: 7px !important;
-  font-size: 16px !important;
-}
-
-/* scroll bar */
-
-::-webkit-scrollbar {
-  width: 0.88rem;
- }
- 
-::-webkit-scrollbar-track {
-  border: 7px solid #9a9ca7;
-  box-shadow: inset 0 0 2.5px 2px rgba(0, 0, 0, 0.5);
-  border-radius: 4px;
-  background-color: #d4d4d8;
+/* System fonts for better performance */
+@layer base {
+  * {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
- 
-::-webkit-scrollbar-thumb {
-  background: #1c0c0c;
-  border-radius: 2px;
-}
- 
-::-webkit-scrollbar-thumb:hover {
-  background: #7a1313;
-}
- 
-/* for Firefox */
- html {scrollbar-color: #c7c5c6 #16477f;} 
-
-/* Category scrolling styles */
-.category-scroll-container {
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-}
-
-.myButton {
-  background-color: #1e1e30 !important;
-  color: #fff !important;
-  border: 1px solid #2d3748 !important;
-  border-radius: 8px !important;
-  padding: 6px 16px !important;
-  min-width: 100px !important;
-  transition: all 0.3s ease !important;
-}
-
-.myButton:hover {
-  background-color: #2d3748 !important;
-  border-color: #e94560 !important;
-}
-
-.myButton.Mui-selected {
-  background-color: #e94560 !important;
-  color: #fff !important;
-  border-color: #e94560 !important;
-}
-
-.myButton.Mui-selected:hover {
-  background-color: #d7263d !important;
-}
-
-/* Ensure smooth scrolling */
-* {
-  scroll-behavior: smooth;
-}
-
-body.arabic-font, .arabic-font * {
-  font-family: 'Cairo', Arial, sans-serif !important;
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body.arabic-font, .arabic-font * {
+    font-family: 'Cairo', Arial, sans-serif !important;
+  }
 } 

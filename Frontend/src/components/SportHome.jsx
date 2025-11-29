@@ -1,275 +1,220 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Stack, Grid, Card, CardContent, CardMedia, Avatar, Rating, Container } from '@mui/material';
-import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
-import SportsMmaIcon from '@mui/icons-material/SportsMma';
-import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
-import StarIcon from '@mui/icons-material/Star';
+import { useState, useMemo, useEffect } from 'react';
+import { Box, Typography, Button, Grid, Card, CardContent, CardMedia, Container, CircularProgress, Chip, Paper, Slider } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-// Swiper imports
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { useLanguage } from '../LanguageContext';
-import { getTranslation } from '../translations';
 import { useGetProductsQuery } from '../Redux/product';
-import SportsKabaddiIcon from '@mui/icons-material/SportsKabaddi';
-import HeartBrokenIcon from '@mui/icons-material/HeartBroken';
+// Import hero images directly from src/images
+import cardiopicImg from '../images/cardiopic.jpg';
+import gymImg from '../images/gym.jpg';
+import crossfitImg from '../images/crossfit.jpg';
+import judoImg from '../images/judo.jpg';
+import kickboxImg from '../images/kickbox.jpg';
 
-const API_URL = (typeof import.meta.env !== 'undefined' && import.meta.env.VITE_BASE_URL) ? import.meta.env.VITE_BASE_URL : "https://morsli-sport-shop.onrender.com";
-
+// Helper function for image URLs
 function buildImgUrl(rawUrl) {
   if (!rawUrl) return '/default-image.png';
   if (rawUrl.startsWith('http')) return rawUrl;
-  return `${API_URL}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
-}
-
-const reviews = [
-  {
-    name: 'Yacine B.',
-    rating: 5,
-    comment: 'Super produits, livraison rapide et service client au top!'
-  },
-  {
-    name: 'Sarah L.',
-    rating: 4,
-    comment: "J'ai trouvé tout ce qu'il me fallait pour la salle de sport."
-  },
-  {
-    name: 'Mehdi K.',
-    rating: 5,
-    comment: 'Qualité excellente, je recommande vivement.'
-  },
-];
-
-const whyChoose = [
-  { icon: <DirectionsRunIcon fontSize="large" sx={{ color: '#10b981' }} />, label: 'Livraison Express' },
-  { icon: <FitnessCenterIcon fontSize="large" sx={{ color: '#3b82f6' }} />, label: 'Matériel Pro' },
-  { icon: <SportsMmaIcon fontSize="large" sx={{ color: '#f59e0b' }} />, label: 'Paiement Sécurisé' },
-  { icon: <SportsSoccerIcon fontSize="large" sx={{ color: '#2196f3' }} />, label: 'Conseils Experts' },
-];
-
-const heroSlides = [
-  {
-    image: '/images/cardiopic.jpg',
-    text: 'Équipements de cardio',
-  },
-  {
-    image: '/images/gym.jpg',
-    text: 'Tout matériel de musclulations',
-  },
-  {
-    image: '/images/crossfit.jpg',
-    text: 'Équipements Crossfit & Street workout',
-  },
-  {
-    image: '/images/judo.jpg',
-    text: 'Équipements de Judo, Aïkido, Karaté, Taekwondo',
-  },
-  {
-    image: '/images/kickbox.jpg',
-    text: 'Kick-Boxing et Boxe Thaï !',
-  },
-];
-
-const additionalSlides = [
-  {
-    image: '/images/football.jpg',
-    text: 'Équipements de Football',
-  },
-  {
-    image: '/images/stade.jpg',
-    text: 'Équipements de Stade',
-  },
-];
-
-// Helper to guarantee translation is a string
-function safeT(val, fallback) {
-  return typeof val === 'string' && val.trim() ? val : fallback;
+  return rawUrl.startsWith('/') ? rawUrl : '/' + rawUrl;
 }
 
 export default function SportHome() {
   const navigate = useNavigate();
   const { currentLanguage, t } = useLanguage();
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [allProducts, setAllProducts] = useState([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  
   // Category filter state
   const [selectedCategory, setSelectedCategory] = useState('all');
   
-  // Get products with pagination
-  const { data: productsData, error, isLoading } = useGetProductsQuery(currentPage);
+  // Price filter state
+  const [priceRange, setPriceRange] = useState([0, 100000]);
   
-  // Update products when data changes
-  useEffect(() => {
-    if (productsData?.data) {
-      if (currentPage === 1) {
-        setAllProducts(productsData.data);
-      } else {
-        setAllProducts(prev => [...prev, ...productsData.data]);
+  // Get products from API - optimized for bandwidth
+  const { data: productsData, error, isLoading } = useGetProductsQuery(1, 100, {
+    pollingInterval: 300000, // 5 minutes to save bandwidth
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: false, // Disable refetch on focus to save bandwidth
+    refetchOnReconnect: true,
+    // Cache for 5 minutes to reduce API calls
+    keepUnusedDataFor: 300,
+  });
+  
+  // Transform products data with useMemo to avoid unnecessary recalculations
+  const allProducts = useMemo(() => {
+    if (!productsData || !Array.isArray(productsData)) return [];
+    return productsData.map(product => {
+      if (product.attributes) {
+        return {
+          id: product.id,
+          Product_name: product.attributes.Product_name,
+          Product_price: product.attributes.Product_price,
+          Product_img: product.attributes.Product_img || [],
+          Product_category: product.attributes.Product_category,
+        };
       }
-      
-      // Check if there are more products
-      const totalPages = Math.ceil((productsData.meta?.pagination?.total || 0) / 8);
-      setHasMore(currentPage < totalPages);
-    }
-  }, [productsData, currentPage]);
+      return {
+        id: product.id,
+        Product_name: product.Product_name,
+        Product_price: product.Product_price,
+        Product_img: product.Product_img || [],
+        Product_category: product.Product_category,
+      };
+    });
+  }, [productsData]);
   
-  // Load more products
-  const loadMore = () => {
-    if (!isLoadingMore && hasMore) {
-      setIsLoadingMore(true);
-      setCurrentPage(prev => prev + 1);
-      setIsLoadingMore(false);
+  // Get unique categories with useMemo
+  const categories = useMemo(() => 
+    ['all', ...Array.from(new Set(allProducts.map(p => p.Product_category).filter(Boolean)))],
+    [allProducts]
+  );
+
+  // Calculate price range from all products
+  const { minProductPrice, maxProductPrice } = useMemo(() => {
+    if (allProducts.length === 0) {
+      return { minProductPrice: 0, maxProductPrice: 100000 };
     }
-  };
+    const prices = allProducts.map(p => p.Product_price || 0).filter(p => p > 0);
+    if (prices.length === 0) {
+      return { minProductPrice: 0, maxProductPrice: 100000 };
+    }
+    const min = Math.floor(Math.min(...prices));
+    const max = Math.ceil(Math.max(...prices));
+    return { minProductPrice: min, maxProductPrice: max };
+  }, [allProducts]);
+
+  // Update price range slider when products change
+  useEffect(() => {
+    if (allProducts.length > 0 && maxProductPrice > minProductPrice) {
+      setPriceRange([minProductPrice, maxProductPrice]);
+    }
+  }, [minProductPrice, maxProductPrice, allProducts.length]);
   
-  // Filter products based on selected category
-  const getFilteredProducts = () => {
-    if (selectedCategory === 'all') {
-      return allProducts;
-    }
-    return allProducts.filter(product => 
+  // Filter and group products with useMemo (includes price filter)
+  const productsByCategory = useMemo(() => {
+    // First filter by category
+    let filtered = selectedCategory === 'all' 
+      ? allProducts 
+      : allProducts.filter(product => 
       product.Product_category?.toLowerCase() === selectedCategory.toLowerCase()
     );
-  };
-  
-  const featuredProducts = getFilteredProducts();
-  
-  // Get all product image URLs for the slider
-  const allProductImgUrls = featuredProducts.map(product => {
-    if (!product || !product.attributes) return null;
     
-    const imageUrl = product.attributes.Product_image?.data?.attributes?.url;
-    return imageUrl ? `https://morsli-sport-shop.onrender.com${imageUrl}` : null;
-  }).filter(url => url !== null);
+    // Then filter by price range
+    filtered = filtered.filter(product => {
+      const price = product.Product_price || 0;
+      return price >= priceRange[0] && price <= priceRange[1];
+    });
+    
+    if (selectedCategory !== 'all') {
+      return { [selectedCategory]: filtered };
+    }
+    
+    const grouped = {};
+    filtered.forEach(product => {
+      const category = product.Product_category || 'Autres';
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+      grouped[category].push(product);
+    });
+    return grouped;
+  }, [allProducts, selectedCategory, priceRange]);
+  
+  // Check if we have actual connection error vs just no products
+  // Error exists and we haven't loaded any data yet = connection error
+  const hasConnectionError = error && !isLoading && (productsData === undefined || productsData === null);
+  // No error, data loaded (even if empty array) and no products = empty database
+  // Also check if we successfully got data but it's an empty array
+  const hasNoProducts = !isLoading && !error && (
+    (productsData !== undefined && Array.isArray(productsData) && productsData.length === 0) ||
+    (productsData !== undefined && allProducts.length === 0)
+  );
   
   const handleDetailsClick = (product) => {
     navigate(`/product/${product.id}`);
   };
 
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category);
+  const getImageUrl = (product) => {
+    if (!product.Product_img || product.Product_img.length === 0) {
+      return '/default-image.png';
+    }
+    
+    const firstImage = product.Product_img[0];
+    if (typeof firstImage === 'string') {
+      return firstImage;
+    } else if (firstImage?.formats?.medium?.url) {
+      return buildImgUrl(firstImage.formats.medium.url);
+    } else if (firstImage?.url) {
+      return buildImgUrl(firstImage.url);
+    }
+    return '/default-image.png';
   };
 
-  return (
-    <Box sx={{ background: 'linear-gradient(135deg, #181818 0%, #111 100%)', minHeight: '100vh', color: '#fff' }}>
-      {/* Hero Section */}
-      <Container maxWidth="xl">
-        <Box sx={{
-          py: { xs: 4, md: 10 },
-          px: { xs: 1, md: 2 },
-          textAlign: 'center',
-          background: 'linear-gradient(120deg, #1976d2 0%, #181818 100%)',
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: { xs: 2, md: 3 },
-          mt: { xs: 1, md: 2 },
-        }}>
-          <Typography variant="h2" sx={{ 
-            fontWeight: 900, 
-            mb: { xs: 1, md: 2 }, 
-            letterSpacing: 1, 
-            fontSize: { xs: '1.5rem', sm: '2rem', md: '3.5rem' } 
-          }}>
-            Unleash Your <span style={{ color: '#2196f3' }}>Sport</span> Potential
-          </Typography>
-          <Typography variant="h5" sx={{ 
-            mb: { xs: 2, md: 4 }, 
-            fontWeight: 400, 
-            color: '#fff', 
-            opacity: 0.9,
-            fontSize: { xs: '1rem', sm: '1.2rem', md: '1.5rem' }
-          }}>
-            Boutique d'équipement sportif moderne, pour tous les passionnés
-          </Typography>
-          <Button
-            variant="contained"
-            size="large"
-            sx={{
-              background: 'linear-gradient(45deg, #10b981 0%, #059669 100%)',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: { xs: '1rem', md: '1.2rem' },
-              px: { xs: 3, md: 5 },
-              py: { xs: 1, md: 1.5 },
-              borderRadius: 3,
-              boxShadow: '0 4px 15px rgba(16,185,129,0.2)',
-              '&:hover': { background: 'linear-gradient(45deg, #059669 0%, #047857 100%)', color: '#fff' },
-            }}
-            onClick={() => {
-              const productsSection = document.getElementById('products-section');
-              if (productsSection) {
-                productsSection.scrollIntoView({ 
-                  behavior: 'smooth',
-                  block: 'start'
-                });
-              }
-            }}
-          >
-            Shop Now
-          </Button>
-          {/* Animated sport icons - hidden on mobile */}
-          <Box sx={{ 
-            position: 'absolute', 
-            top: { xs: 10, md: 30 }, 
-            right: { xs: 10, md: 40 }, 
-            opacity: { xs: 0.05, md: 0.15 } 
-          }}>
-            <SportsSoccerIcon sx={{ fontSize: { xs: 60, md: 120 }, color: '#1976d2' }} />
-          </Box>
-          <Box sx={{ 
-            position: 'absolute', 
-            bottom: { xs: 10, md: 30 }, 
-            left: { xs: 10, md: 40 }, 
-            opacity: { xs: 0.05, md: 0.13 } 
-          }}>
-            <FitnessCenterIcon sx={{ fontSize: { xs: 50, md: 100 }, color: '#2196f3' }} />
-          </Box>
-          <Box sx={{ 
-            position: 'absolute', 
-            top: { xs: 40, md: 80 }, 
-            left: { xs: 40, md: 80 }, 
-            opacity: { xs: 0.05, md: 0.10 } 
-          }}>
-            <SportsMmaIcon sx={{ fontSize: { xs: 40, md: 80 }, color: '#1976d2' }} />
-          </Box>
-        </Box>
-      </Container>
+  // Hero slides - using imported images for proper Vite handling
+  const heroSlides = [
+    {
+      image: cardiopicImg,
+      text: 'Équipements de cardio',
+    },
+    {
+      image: gymImg,
+      text: 'Tout matériel de musclulations',
+    },
+    {
+      image: crossfitImg,
+      text: 'Équipements Crossfit & Street workout',
+    },
+    {
+      image: judoImg,
+      text: 'Équipements de Judo, Aïkido, Karaté, Taekwondo',
+    },
+    {
+      image: kickboxImg,
+      text: 'Kick-Boxing et Boxe Thaï !',
+    },
+  ];
 
-      {/* Image Slider Section */}
-      <Container maxWidth="xl" sx={{
-        py: { xs: 3, md: 6 },
-        px: { xs: 1, md: 0 },
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)',
-        width: '100%'
-      }}>
-        <Typography variant="h4" sx={{ 
-          fontWeight: 700, 
-          mb: { xs: 2, md: 4 }, 
-          color: '#2196f3', 
-          textAlign: 'center', 
-          px: 2,
-          fontSize: { xs: '1.5rem', md: '2rem' }
-        }}>
-          Nos Équipements Sportifs
-        </Typography>
-        <Box sx={{ 
-          display: 'flex',
-          flexDirection: { xs: 'column', lg: 'row' },
-          gap: { xs: 2, md: 3 },
-          px: { xs: 1, md: 2 }
-        }}>
-          {/* Main Slider - Left Side */}
+  return (
+        <Box sx={{
+      background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%)', 
+      minHeight: '100vh', 
+            color: '#fff', 
+      pb: 0
+    }}>
+      {/* Hero Section with Slider and Featured Content */}
+      <Container maxWidth="xl" sx={{ pt: { xs: 18, md: 20 } }}>
+        <Grid container spacing={3} sx={{ mb: { xs: 4, md: 6 } }}>
+          {/* Slider - Left 50% */}
+          <Grid item xs={12} md={6}>
+            <Box sx={{
+              position: 'relative',
+              borderRadius: 3,
+              overflow: 'hidden',
+              boxShadow: '0 8px 32px rgba(0, 212, 255, 0.25)',
+              border: '1px solid rgba(0, 212, 255, 0.3)',
+              background: 'linear-gradient(135deg, rgba(0, 20, 40, 0.4) 0%, rgba(0, 40, 60, 0.3) 50%, rgba(0, 20, 40, 0.4) 100%)',
+            }}>
           <Box sx={{ 
-            flex: { lg: '1 1 60%' },
-            maxWidth: { xs: '100%', lg: 'calc(60% - 200px)' },
+                '& .swiper': {
+                  height: { xs: '300px', sm: '400px', md: '500px' },
+                  borderRadius: '12px',
+                },
+                '& .swiper-pagination-bullet': {
+                  background: '#00d4ff',
+                  opacity: 0.5,
+                  '&.swiper-pagination-bullet-active': {
+                    opacity: 1,
+                    background: '#00d4ff',
+                  },
+                },
+                '& .swiper-button-next, & .swiper-button-prev': {
+                  color: '#00d4ff',
+                  '&:after': {
+                    fontSize: '24px',
+                  },
+                },
           }}>
             <Swiper
               loop={true}
@@ -277,32 +222,51 @@ export default function SportHome() {
               navigation={true}
               modules={[Pagination, Navigation, Autoplay]}
               autoplay={{ delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true }}
-              style={{ borderRadius: '16px', overflow: 'hidden', height: '320px', background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               {heroSlides.map((slide, index) => (
                 <SwiperSlide key={index}>
-                  <Box sx={{ position: 'relative', width: '100%', height: { xs: '200px', sm: '240px', md: '320px' }, p: 0, m: 0 }}>
-                    <img
+                    <Box sx={{ 
+                      position: 'relative', 
+                      width: '100%', 
+                      height: { xs: '300px', sm: '400px', md: '500px' },
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: '#000',
+                    }}>
+                      <Box
+                        component="img"
                       src={slide.image}
-                      alt="Sport Equipment"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', padding: 0, margin: 0 }}
+                        alt={slide.text}
+                        sx={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          width: 'auto',
+                          height: 'auto',
+                          objectFit: 'contain',
+                          objectPosition: 'center center',
+                          display: 'block',
+                        }}
+                        loading={index === 0 ? 'eager' : 'lazy'}
                     />
                     <Box sx={{
                       position: 'absolute',
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                        background: 'rgba(0, 0, 0, 0.7)',
                       p: { xs: 2, md: 3 },
-                      textAlign: 'center'
+                        textAlign: 'center',
                     }}>
                       <Typography
                         variant="h5"
                         sx={{
                           color: '#fff',
-                          fontWeight: 700,
-                          textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                          fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' }
+                            fontFamily: '"Roboto", "Arial", sans-serif',
+                            fontWeight: 600,
+                            fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+                            letterSpacing: '0.5px',
                         }}
                       >
                         {slide.text}
@@ -313,278 +277,711 @@ export default function SportHome() {
               ))}
             </Swiper>
           </Box>
+            </Box>
+          </Grid>
 
-          {/* Additional Slides - Right Side */}
+          {/* Animated Welcome Section - Right 50% */}
+          <Grid item xs={12} md={6}>
           <Box sx={{ 
-            flex: { lg: '1 1 40%' },
-            maxWidth: { lg: '40%' },
+              height: { xs: 'auto', md: '500px' },
             display: 'flex',
             flexDirection: 'column',
-            gap: { xs: 1, md: 2 }
-          }}>
-            {additionalSlides.map((slide, index) => (
-              <Box key={index} sx={{ 
+              justifyContent: 'center',
+              alignItems: 'center',
+              position: 'relative',
+              p: { xs: 3, md: 4 },
+              borderRadius: 3,
+              overflow: 'hidden',
+              background: 'linear-gradient(135deg, rgba(0, 20, 40, 0.6) 0%, rgba(0, 40, 60, 0.4) 50%, rgba(0, 20, 40, 0.6) 100%)',
+              border: '2px solid rgba(0, 212, 255, 0.3)',
+              boxShadow: '0 8px 32px rgba(0, 212, 255, 0.25)',
+              backdropFilter: 'blur(10px)',
+            }}>
+              {/* Animated Background Elements */}
+              <Box sx={{
+                position: 'absolute',
+                top: '-50%',
+                right: '-20%',
+                width: '300px',
+                height: '300px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(0, 212, 255, 0.15) 0%, transparent 70%)',
+                animation: 'pulse 4s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': {
+                    transform: 'scale(1)',
+                    opacity: 0.6,
+                  },
+                  '50%': {
+                    transform: 'scale(1.2)',
+                    opacity: 0.3,
+                  },
+                },
+              }} />
+              <Box sx={{
+                position: 'absolute',
+                bottom: '-30%',
+                left: '-15%',
+                width: '250px',
+                height: '250px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(0, 212, 255, 0.12) 0%, transparent 70%)',
+                animation: 'float 6s ease-in-out infinite',
+                '@keyframes float': {
+                  '0%, 100%': {
+                    transform: 'translateY(0px)',
+                  },
+                  '50%': {
+                    transform: 'translateY(-20px)',
+                  },
+                },
+              }} />
+
+              {/* Welcome Title */}
+              <Typography
+                variant="h3"
+                sx={{
+                  color: '#00d4ff',
+                  fontWeight: 800,
+                  fontFamily: '"Roboto", "Arial", sans-serif',
+                  mb: 2,
+                  textAlign: 'center',
+                  fontSize: { xs: '1.75rem', sm: '2.25rem', md: '2.75rem' },
+                  letterSpacing: '1px',
+                  position: 'relative',
+                  zIndex: 1,
+                  animation: 'fadeInDown 1s ease-out',
+                  '@keyframes fadeInDown': {
+                    '0%': {
+                      opacity: 0,
+                      transform: 'translateY(-30px)',
+                    },
+                    '100%': {
+                      opacity: 1,
+                      transform: 'translateY(0)',
+                    },
+                  },
+                  textShadow: '0 0 20px rgba(0, 212, 255, 0.5)',
+                }}
+              >
+                Bienvenue à Morsli Sport Shop
+              </Typography>
+
+              {/* Animated Decorative Line */}
+              <Box sx={{
+                width: '100px',
+                height: '4px',
+                background: 'linear-gradient(90deg, transparent, #00d4ff, transparent)',
+                mb: 4,
+                position: 'relative',
+                zIndex: 1,
+                animation: 'expand 1.5s ease-out 0.5s both',
+                '@keyframes expand': {
+                  '0%': {
+                    width: '0px',
+                    opacity: 0,
+                  },
+                  '100%': {
+                    width: '100px',
+                    opacity: 1,
+                  },
+                },
+              }} />
+
+              {/* Animated Features */}
+              <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+                width: '90%',
                 position: 'relative', 
-                height: { xs: '120px', sm: '150px', md: '190px' },
-                borderRadius: '16px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 20px 0 rgba(0,0,0,0.3)'
+                zIndex: 1,
               }}>
-                <img 
-                  src={slide.image} 
-                  alt="Sport Equipment" 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                />
+                {/* Feature 1 */}
                 <Box sx={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-                  p: { xs: 1, md: 2 },
-                  textAlign: 'center'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  background: 'rgba(0, 212, 255, 0.05)',
+                  border: '1px solid rgba(0, 212, 255, 0.2)',
+                  transition: 'all 0.3s ease',
+                  animation: 'slideInLeft 1s ease-out 0.7s both',
+                  '@keyframes slideInLeft': {
+                    '0%': {
+                      opacity: 0,
+                      transform: 'translateX(-30px)',
+                    },
+                    '100%': {
+                      opacity: 1,
+                      transform: 'translateX(0)',
+                    },
+                  },
+                  '&:hover': {
+                    background: 'rgba(0, 212, 255, 0.1)',
+                    transform: 'translateX(10px)',
+                    boxShadow: '0 4px 15px rgba(0, 212, 255, 0.2)',
+                  },
                 }}>
+                  <Box sx={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 184, 212, 0.2))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid rgba(0, 212, 255, 0.4)',
+                    animation: 'rotate 3s linear infinite',
+                    '@keyframes rotate': {
+                      '0%': { transform: 'rotate(0deg)' },
+                      '100%': { transform: 'rotate(360deg)' },
+                    },
+                  }}>
+                    <Typography sx={{ fontSize: '24px' }}>⚡</Typography>
+                  </Box>
+                  <Box>
                   <Typography
                     variant="h6"
                     sx={{
                       color: '#fff',
-                      fontWeight: 700,
-                      textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
-                      fontSize: { xs: '0.8rem', sm: '1rem', md: '1.1rem' }
-                    }}
-                  >
-                    {slide.text}
+                        fontWeight: 600,
+                        fontFamily: '"Roboto", "Arial", sans-serif',
+                        mb: 0.5,
+                      }}
+                    >
+                      Livraison Rapide
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#94a3b8',
+                        fontFamily: '"Roboto", "Arial", sans-serif',
+                      }}
+                    >
+                      Expédition dans toute l'Algérie
                   </Typography>
+                  </Box>
+                </Box>
+
+                {/* Feature 2 */}
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  background: 'rgba(0, 212, 255, 0.05)',
+                  border: '1px solid rgba(0, 212, 255, 0.2)',
+                  transition: 'all 0.3s ease',
+                  animation: 'slideInRight 1s ease-out 0.9s both',
+                  '@keyframes slideInRight': {
+                    '0%': {
+                      opacity: 0,
+                      transform: 'translateX(30px)',
+                    },
+                    '100%': {
+                      opacity: 1,
+                      transform: 'translateX(0)',
+                    },
+                  },
+                  '&:hover': {
+                    background: 'rgba(0, 212, 255, 0.1)',
+                    transform: 'translateX(-10px)',
+                    boxShadow: '0 4px 15px rgba(0, 212, 255, 0.2)',
+                  },
+                }}>
+                  <Box sx={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 184, 212, 0.2))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid rgba(0, 212, 255, 0.4)',
+                    animation: 'bounce 2s ease-in-out infinite',
+                    '@keyframes bounce': {
+                      '0%, 100%': { transform: 'translateY(0)' },
+                      '50%': { transform: 'translateY(-10px)' },
+                    },
+                  }}>
+                    <Typography sx={{ fontSize: '24px' }}>⭐</Typography>
+              </Box>
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#fff',
+                        fontWeight: 600,
+                        fontFamily: '"Roboto", "Arial", sans-serif',
+                        mb: 0.5,
+                      }}
+                    >
+                      Qualité Premium
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#94a3b8',
+                        fontFamily: '"Roboto", "Arial", sans-serif',
+                      }}
+                    >
+                      Produits de haute qualité garantis
+                    </Typography>
+          </Box>
+        </Box>
+
+                {/* Feature 3 */}
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  p: 2,
+                  borderRadius: 2,
+                  background: 'rgba(0, 212, 255, 0.05)',
+                  border: '1px solid rgba(0, 212, 255, 0.2)',
+                  transition: 'all 0.3s ease',
+                  animation: 'slideInLeft 1s ease-out 1.1s both',
+                  '@keyframes slideInLeft': {
+                    '0%': {
+                      opacity: 0,
+                      transform: 'translateX(-30px)',
+                    },
+                    '100%': {
+                      opacity: 1,
+                      transform: 'translateX(0)',
+                    },
+                  },
+                  '&:hover': {
+                    background: 'rgba(0, 212, 255, 0.1)',
+                    transform: 'translateX(10px)',
+                    boxShadow: '0 4px 15px rgba(0, 212, 255, 0.2)',
+                  },
+                }}>
+                  <Box sx={{
+                    width: '50px',
+                    height: '50px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 184, 212, 0.2))',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid rgba(0, 212, 255, 0.4)',
+                    animation: 'pulseIcon 2s ease-in-out infinite',
+                    '@keyframes pulseIcon': {
+                      '0%, 100%': {
+                        transform: 'scale(1)',
+                        boxShadow: '0 0 0 0 rgba(0, 212, 255, 0.7)',
+                      },
+                      '50%': {
+                        transform: 'scale(1.1)',
+                        boxShadow: '0 0 0 10px rgba(0, 212, 255, 0)',
+                      },
+                    },
+                  }}>
+                    <Typography sx={{ fontSize: '24px' }}>🎯</Typography>
+                  </Box>
+                  <Box>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#fff',
+                        fontWeight: 600,
+                        fontFamily: '"Roboto", "Arial", sans-serif',
+                        mb: 0.5,
+                      }}
+                    >
+                      Large Sélection
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: '#94a3b8',
+                        fontFamily: '"Roboto", "Arial", sans-serif',
+                      }}
+                    >
+                      Des milliers de produits disponibles
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
-            ))}
-          </Box>
-        </Box>
+            </Box>
+          </Grid>
+        </Grid>
       </Container>
 
-      {/* Pourquoi nous choisir ? */}
-      <Container maxWidth="xl">
-        <Box sx={{ mt: { xs: 4, md: 8 }, px: { xs: 1, md: 2 } }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: { xs: 2, md: 3 }, color: '#10b981', fontSize: { xs: '1.5rem', md: '2rem' }, textAlign: 'center', letterSpacing: 1 }}>
-            Pourquoi nous choisir ?
+      {/* Products Section */}
+      <Container maxWidth="xl" id="products-section">
+        <Box sx={{ 
+          mt: { xs: 4, md: 8 }, 
+          px: { xs: 2, sm: 3, md: 4 },
+          mb: { xs: 4, md: 8 }
+        }}>
+          <Typography 
+            variant="h3" 
+            sx={{ 
+              fontFamily: '"Roboto", "Arial", sans-serif',
+              fontWeight: 700, 
+              mb: 4, 
+              fontSize: { xs: '2rem', md: '3rem' },
+              textAlign: 'center',
+              letterSpacing: '0.5px',
+              color: '#00d4ff',
+            }}
+          >
+            Nos Produits
           </Typography>
-          <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center">
-            {whyChoose.map((item, idx) => (
-              <Grid item xs={12} sm={6} md={3} key={idx}>
-                <Box
+
+          {/* Filters Section */}
+          <Paper sx={{ 
+            p: 3, 
+            mb: 6, 
+            background: 'rgba(0, 212, 255, 0.05)',
+            border: '1px solid rgba(0, 212, 255, 0.2)',
+            borderRadius: 3,
+          }}>
+            {/* Category Filter */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="h6" sx={{ 
+                color: '#00d4ff', 
+                mb: 2, 
+                fontFamily: '"Roboto", "Arial", sans-serif',
+                fontWeight: 600,
+              }}>
+                Catégories
+              </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap',
+                gap: 1.5, 
+              }}>
+                {categories.map(category => (
+                  <Chip
+                    key={category}
+                    label={category === 'all' ? 'Tous' : category}
+                    onClick={() => setSelectedCategory(category)}
+              sx={{
+                      background: selectedCategory === category 
+                        ? 'linear-gradient(135deg, #00d4ff 0%, #00b8d4 100%)'
+                        : 'rgba(0, 212, 255, 0.1)',
+                      color: selectedCategory === category ? '#000' : '#00d4ff',
+                fontWeight: 700,
+                      fontSize: '0.95rem',
+                      px: 1,
+                      py: 2.5,
+                      border: selectedCategory === category 
+                        ? 'none' 
+                        : '1px solid rgba(0, 212, 255, 0.3)',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        background: selectedCategory === category 
+                          ? 'linear-gradient(135deg, #00b8d4 0%, #00a8cc 100%)'
+                          : 'rgba(0, 212, 255, 0.2)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 15px rgba(0, 212, 255, 0.3)',
+                      },
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            {/* Price Filter */}
+            <Box>
+              <Typography variant="h6" sx={{ 
+                color: '#00d4ff', 
+                mb: 1.5, 
+                fontFamily: '"Roboto", "Arial", sans-serif',
+                fontWeight: 600,
+              }}>
+                Filtrer par Prix (DZD)
+              </Typography>
+              
+              {/* Price Range Slider */}
+              <Box sx={{ mb: 3, py: 0, mt: 0 }}>
+                <Slider
+                  value={priceRange}
+                  onChange={(e, newValue) => {
+                    setPriceRange(newValue);
+                  }}
+                  valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${value.toLocaleString()} DZD`}
+                  min={minProductPrice}
+                  max={maxProductPrice}
+                  step={Math.max(1, Math.floor((maxProductPrice - minProductPrice) / 100))}
                   sx={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.10)',
-                    backdropFilter: 'blur(8px)',
-                    borderRadius: 4,
-                    p: { xs: 3, md: 4 },
-                    textAlign: 'center',
-                    boxShadow: '0 6px 32px 0 rgba(16,185,129,0.10)',
-                    color: '#fff',
-                    minHeight: { xs: 140, md: 180 },
-                    position: 'relative',
-                    overflow: 'hidden',
-                    transition: 'transform 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.3s',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      transform: 'translateY(-8px) scale(1.04)',
-                      boxShadow: `0 12px 40px 0 #10b98155`,
+                    color: '#00d4ff',
+                    padding: '0 !important',
+                    margin: '0 !important',
+                    height: '24px',
+                    '& .MuiSlider-root': {
+                      padding: '0 !important',
+                      margin: '0 !important',
                     },
-                    animation: `fadeInUp 0.7s ${0.1 * idx + 0.2}s both`,
-                    '@keyframes fadeInUp': {
-                      from: { opacity: 0, transform: 'translate3d(0, 40px, 0)' },
-                      to: { opacity: 1, transform: 'none' },
+                    '& .MuiSlider-thumb': {
+                      backgroundColor: '#00d4ff',
+                      border: '2px solid #000',
+                      width: 20,
+                      height: 20,
+                '&:hover': {
+                        boxShadow: '0 0 0 8px rgba(0, 212, 255, 0.16)',
+                      },
+                      '&.Mui-focusVisible': {
+                        boxShadow: '0 0 0 8px rgba(0, 212, 255, 0.16)',
+                      },
+                    },
+                    '& .MuiSlider-track': {
+                      backgroundColor: '#00d4ff',
+                      border: 'none',
+                      height: 2,
+                    },
+                    '& .MuiSlider-rail': {
+                      backgroundColor: 'rgba(0, 212, 255, 0.2)',
+                      height: 2,
+                    },
+                    '& .MuiSlider-valueLabel': {
+                      backgroundColor: '#00d4ff',
+                      color: '#000',
+                      fontFamily: '"Roboto", "Arial", sans-serif',
+                      fontWeight: 600,
                     },
                   }}
-                >
-                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {React.cloneElement(item.icon, {
-                      sx: { fontSize: 48, color: '#fff', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.18))' }
-                    })}
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1.1rem', md: '1.25rem' }, letterSpacing: 0.5, mb: 1, textShadow: '0 2px 8px rgba(0,0,0,0.12)' }}>
-                    {item.label}
-                  </Typography>
+                />
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  mt: 0.5,
+                  mb: 0,
+                  pt: 0,
+                  pb: 0,
+                  color: '#94a3b8',
+                  fontSize: '0.875rem',
+                  fontFamily: '"Roboto", "Arial", sans-serif',
+                }}>
+                  <span>{priceRange[0].toLocaleString()} DZD</span>
+                  <span>{priceRange[1].toLocaleString()} DZD</span>
                 </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-      </Container>
+              </Box>
 
-      {/* Produits */}
-      <Container maxWidth="xl" id="products-section">
-        <Box sx={{ mt: { xs: 4, md: 8 }, px: { xs: 1, md: 2 } }}>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: { xs: 2, md: 3 }, color: '#2196f3', fontSize: { xs: '1.5rem', md: '2rem' } }}>
-            Produits
-          </Typography>
-          <Box sx={{ display: 'flex', overflowX: 'auto', gap: 2, py: 2, mb: 3, '&::-webkit-scrollbar': { height: 4 }, '&::-webkit-scrollbar-thumb': { background: '#2196f3', borderRadius: 2 } }}>
-            <Button
-              variant={selectedCategory === 'all' ? 'contained' : 'outlined'}
-              sx={{
-                background: selectedCategory === 'all' ? 'linear-gradient(45deg, #10b981 0%, #059669 100%)' : 'rgba(59,130,246,0.08)',
-                color: selectedCategory === 'all' ? '#fff' : '#3b82f6',
-                borderColor: selectedCategory === 'all' ? '#10b981' : '#3b82f6',
-                fontWeight: 700,
-                minWidth: 120,
-                '&:hover': {
-                  background: selectedCategory === 'all' ? 'linear-gradient(45deg, #059669 0%, #047857 100%)' : 'rgba(59,130,246,0.15)',
-                  color: '#fff',
-                },
-              }}
-              onClick={() => setSelectedCategory('all')}
-            >
-              {safeT(t('all'), currentLanguage === 'ar' ? 'الكل' : 'Tous')}
-            </Button>
-            {Array.from(new Set(allProducts.map(p => p.Product_category).filter(Boolean))).map(cat => {
-              // Find a product with this category to get the Arabic name
-              const prodWithCat = allProducts.find(p => p.Product_category === cat);
-              const catLabel = currentLanguage === 'ar' && prodWithCat && prodWithCat.Product_category_ar ? prodWithCat.Product_category_ar : cat;
-              return (
-                <Button
-                  key={cat}
-                  variant={selectedCategory === cat ? 'contained' : 'outlined'}
-                  color="primary"
-                  onClick={() => setSelectedCategory(cat)}
-                  sx={{ minWidth: 120 }}
-                >
-                  {catLabel}
-                </Button>
-              );
-            })}
-          </Box>
-          <Grid container spacing={{ xs: 2, md: 3 }} justifyContent="center">
-            {isLoading && (<Typography variant="h6" sx={{ textAlign: 'center', color: '#fff', width: '100%' }}>Loading products...</Typography>)}
-            {error && (<Typography variant="h6" sx={{ textAlign: 'center', color: '#e94560', width: '100%' }}>Error loading products. Please try again later.</Typography>)}
-            {!isLoading && !error && getFilteredProducts().length === 0 && (<Typography variant="h6" sx={{ textAlign: 'center', color: '#fff', width: '100%' }}>Aucun produit trouvé.</Typography>)}
-            {!isLoading && !error && getFilteredProducts().map(product => {
-              const imgObj = product.Product_img?.[0];
-              const url = imgObj?.formats?.medium?.url || imgObj?.url;
-              let imageUrl = buildImgUrl(url);
-              return (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-                  <Card sx={{ 
-                    background: 'rgba(255,255,255,0.07)', color: '#fff', borderRadius: { xs: 2, md: 3 }, boxShadow: '0 4px 24px 0 rgba(16,185,129,0.10)', border: '1px solid rgba(255,255,255,0.10)', backdropFilter: 'blur(8px)', transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'scale(1.04)', boxShadow: '0 8px 32px 0 #10b981' }, cursor: 'pointer' }}>
-                    <CardMedia component="img" image={imageUrl} alt={product.Product_name || 'Product'} sx={{ objectFit: 'cover', borderRadius: { xs: '16px 16px 0 0', md: '18px 18px 0 0' }, background: '#222', height: { xs: 140, sm: 160, md: 180 } }} />
-                    <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
-                      <Typography variant="h6" sx={{ fontWeight: 700, fontSize: { xs: '1rem', md: '1.1rem' } }}>{currentLanguage === 'ar' && product.Product_name_ar ? product.Product_name_ar : product.Product_name || (currentLanguage === 'ar' ? 'اسم المنتج' : 'Product Name')}</Typography>
-                      <Typography variant="body2" sx={{ color: '#f59e0b', fontWeight: 800, fontSize: { xs: '1rem', md: '1.1rem' } }}>{product.Product_price || 0} DA</Typography>
-                      <Typography variant="body2" sx={{ color: '#b8b8b8', mb: 1, fontSize: { xs: '0.8rem', md: '0.9rem' } }}>{currentLanguage === 'ar' && product.Product_category_ar ? product.Product_category_ar : product.Product_category || (currentLanguage === 'ar' ? 'الفئة' : 'Category')}</Typography>
-                      {product.Product_size && (<Typography variant="body2" sx={{ color: '#b8b8b8', mb: 1, fontSize: { xs: '0.8rem', md: '0.9rem' } }}>{currentLanguage === 'ar' ? `المقاس: ${product.Product_size}` : `Taille: ${product.Product_size}`}</Typography>)}
-                      <Button variant="outlined" size="small" sx={{ borderColor: '#2196f3', color: '#2196f3', fontWeight: 700, mt: 1, fontSize: { xs: '0.8rem', md: '0.9rem' }, '&:hover': { background: '#2196f3', color: '#181818' } }} onClick={() => handleDetailsClick(product)}>{t('details')}</Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              );
-            })}
-          </Grid>
-          {/* Debug Info - Remove this after testing */}
-          <Box sx={{ textAlign: 'center', mt: 2, p: 2, background: 'rgba(255,255,255,0.1)', borderRadius: 2 }}>
-            <Typography variant="body2" sx={{ color: '#fff', mb: 1 }}>
-              Debug: Products loaded: {allProducts.length} | Has more: {hasMore ? 'Yes' : 'No'} | Current page: {currentPage}
-            </Typography>
-            {productsData?.meta?.pagination && (
-              <Typography variant="body2" sx={{ color: '#ccc' }}>
-                Total: {productsData.meta.pagination.total} | Page size: {productsData.meta.pagination.pageSize}
+            </Box>
+          </Paper>
+
+          {/* Loading State */}
+          {isLoading && (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <CircularProgress sx={{ color: '#00d4ff' }} size={60} />
+              <Typography variant="h6" sx={{ fontFamily: '"Roboto", "Arial", sans-serif', color: '#94a3b8', mt: 3 }}>
+                Chargement des produits...
               </Typography>
-            )}
+            </Box>
+          )}
+
+          {/* Connection Error State - Only show if there's an actual connection error */}
+          {hasConnectionError && (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h6" sx={{ fontFamily: '"Roboto", "Arial", sans-serif', color: '#ef4444', mb: 2 }}>
+                Erreur lors du chargement des produits. Veuillez réessayer plus tard.
+              </Typography>
+              <Typography variant="body2" sx={{ fontFamily: '"Roboto", "Arial", sans-serif', color: '#94a3b8' }}>
+                Vérifiez votre connexion internet ou contactez le support.
+              </Typography>
+            </Box>
+          )}
+
+          {/* No Products State - Show when there are no products in database */}
+          {hasNoProducts && (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h6" sx={{ fontFamily: '"Roboto", "Arial", sans-serif', color: '#94a3b8', mb: 2 }}>
+                Aucun produit disponible pour le moment.
+              </Typography>
+              <Typography variant="body2" sx={{ fontFamily: '"Roboto", "Arial", sans-serif', color: '#64748b' }}>
+                Revenez bientôt pour découvrir nos produits!
+              </Typography>
           </Box>
-          {hasMore && (
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
+          )}
+
+          {/* No Products After Filtering */}
+          {!isLoading && !hasConnectionError && !hasNoProducts && Object.keys(productsByCategory).length === 0 && (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h6" sx={{ fontFamily: '"Roboto", "Arial", sans-serif', color: '#94a3b8', mb: 2 }}>
+                Aucun produit trouvé avec les filtres sélectionnés.
+              </Typography>
               <Button
-                variant="outlined"
-                size="large"
-                sx={{ 
-                  borderColor: '#2196f3', 
-                  color: '#2196f3', 
-                  fontWeight: 700, 
-                  fontSize: { xs: '0.9rem', md: '1rem' },
-                  '&:hover': { background: '#2196f3', color: '#181818' } 
+                variant="contained"
+                onClick={() => {
+                  setSelectedCategory('all');
+                  setPriceRange([minProductPrice, maxProductPrice]);
                 }}
-                onClick={loadMore}
-                disabled={isLoadingMore}
+                sx={{ 
+                  background: '#00d4ff',
+                  color: '#000',
+                  '&:hover': {
+                    background: '#00b8d4',
+                  },
+                }}
               >
-                {isLoadingMore ? 'Loading...' : 'Load More'}
+                Réinitialiser les filtres
               </Button>
             </Box>
           )}
-        </Box>
-      </Container>
 
-      {/* Customer Reviews Preview */}
-      <Container maxWidth="xl">
-        <Box sx={{ mt: { xs: 4, md: 8 }, px: { xs: 1, md: 2 }, mb: { xs: 4, md: 8 } }}>
-          <Typography variant="h4" sx={{ 
-            fontWeight: 700, 
-            mb: { xs: 2, md: 3 }, 
-            color: '#10b981',
-            fontSize: { xs: '1.5rem', md: '2rem' }
-          }}>
-            {t('clientReviews')}
+          {!isLoading && !error && Object.entries(productsByCategory).map(([category, products]) => (
+            <Box key={category} sx={{ mb: { xs: 6, md: 10 } }}>
+              {/* Category Header */}
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                mb: 4,
+                justifyContent: 'center'
+              }}>
+                <Box sx={{ 
+                  flex: 1, 
+                  height: '2px', 
+                  background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent)',
+                  mr: 3
+                }} />
+                <Typography 
+                  variant="h4" 
+                  sx={{ 
+                    fontFamily: '"Roboto", "Arial", sans-serif',
+                    fontWeight: 600,
+                    fontSize: { xs: '1.5rem', md: '2rem' },
+                    color: '#00d4ff',
+                    textTransform: 'capitalize',
+                    textAlign: 'center',
+                    minWidth: 'fit-content',
+                  }}
+                >
+                  {category}
           </Typography>
-          <Grid container spacing={{ xs: 2, md: 3 }} justifyContent="center">
-            {reviews.map((review, idx) => (
-              <Grid item xs={12} sm={6} md={4} key={idx}>
-                <Card sx={{ 
-                  background: 'rgba(255,255,255,0.07)', 
+                <Box sx={{ 
+                  flex: 1, 
+                  height: '2px', 
+                  background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent)',
+                  ml: 3
+                }} />
+              </Box>
+
+              {/* Products Grid */}
+              <Grid 
+                container 
+                spacing={{ xs: 2, sm: 3, md: 4 }} 
+                justifyContent="center"
+              >
+                {products.map(product => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+                    <Card 
+                      onClick={() => handleDetailsClick(product)}
+                      sx={{ 
+                        background: '#1a1a1a',
                   color: '#fff', 
-                  borderRadius: { xs: 2, md: 3 }, 
-                  p: { xs: 1.5, md: 2 },
-                  border: '1px solid rgba(255,255,255,0.10)',
-                  backdropFilter: 'blur(8px)',
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Avatar sx={{ 
-                      bgcolor: '#1976d2', 
-                      mr: 2,
-                      width: { xs: 32, md: 40 },
-                      height: { xs: 32, md: 40 }
-                    }}>
-                      {review.name[0]}
-                    </Avatar>
-                    <Typography variant="subtitle1" sx={{ 
+                        borderRadius: 3,
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+                        border: '1px solid rgba(0, 212, 255, 0.2)',
+                        transition: 'all 0.3s ease',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        cursor: 'pointer',
+                        overflow: 'hidden',
+                        '&:hover': { 
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 8px 24px rgba(0, 212, 255, 0.3)',
+                          borderColor: 'rgba(0, 212, 255, 0.4)',
+                        } 
+                      }}
+                    >
+                      <CardMedia 
+                        component="img" 
+                        image={getImageUrl(product)} 
+                        alt={product.Product_name || 'Product'} 
+                        sx={{ 
+                          objectFit: 'cover',
+                          height: { xs: 250, sm: 280, md: 300 },
+                          width: '100%',
+                          background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 184, 212, 0.05) 100%)',
+                        }}
+                        loading="lazy"
+                        decoding="async"
+                        fetchpriority="low"
+                      />
+                      <CardContent sx={{ 
+                        p: 3,
+                        flexGrow: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}>
+                        <Box>
+                          <Typography 
+                            variant="h6" 
+                            sx={{ 
+                              fontFamily: '"Roboto", "Arial", sans-serif',
+                              fontWeight: 600, 
+                              fontSize: { xs: '1rem', md: '1.15rem' },
+                              mb: 1.5,
+                              lineHeight: 1.4,
+                              minHeight: '2.6em',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              color: '#ffffff'
+                            }}
+                          >
+                            {product.Product_name || 'Product Name'}
+                          </Typography>
+                          <Typography 
+                            variant="h5" 
+                            sx={{ 
+                              fontFamily: '"Roboto", "Arial", sans-serif',
+                              color: '#00d4ff', 
                       fontWeight: 700,
-                      fontSize: { xs: '0.9rem', md: '1rem' }
-                    }}>
-                      {review.name}
+                              fontSize: { xs: '1.3rem', md: '1.5rem' },
+                              mb: 2,
+                            }}
+                          >
+                            {product.Product_price?.toLocaleString() || 0} DZD
                     </Typography>
                   </Box>
-                  <Rating value={review.rating} readOnly precision={0.5} sx={{ 
-                    color: '#2196f3', 
-                    mb: 1,
-                    '& .MuiRating-iconFilled': {
-                      fontSize: { xs: '1rem', md: '1.25rem' }
-                    },
-                    '& .MuiRating-iconEmpty': {
-                      fontSize: { xs: '1rem', md: '1.25rem' }
-                    }
-                  }} icon={<StarIcon fontSize="inherit" />} emptyIcon={<StarIcon fontSize="inherit" />} />
-                  <Typography variant="body2" sx={{ 
-                    color: '#b8b8b8',
-                    fontSize: { xs: '0.8rem', md: '0.9rem' }
-                  }}>
-                    {review.comment}
-                  </Typography>
+                        <Button 
+                          variant="contained" 
+                          size="medium" 
+                          fullWidth
+                          sx={{ 
+                            background: '#00d4ff',
+                            color: '#000',
+                            fontFamily: '"Roboto", "Arial", sans-serif',
+                            fontWeight: 600, 
+                            mt: 2,
+                            py: 1.5,
+                            fontSize: '1rem',
+                            borderRadius: 2,
+                            textTransform: 'none',
+                            boxShadow: '0 2px 8px rgba(0, 212, 255, 0.3)',
+                            '&:hover': { 
+                              background: '#00b8d4',
+                              boxShadow: '0 4px 12px rgba(0, 212, 255, 0.4)',
+                              transform: 'translateY(-2px)',
+                            } 
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDetailsClick(product);
+                          }}
+                        >
+                          Voir les détails
+                        </Button>
+                      </CardContent>
                 </Card>
               </Grid>
             ))}
           </Grid>
-          <Box sx={{ textAlign: 'center', mt: { xs: 2, md: 4 } }}>
-            <Button
-              variant="outlined"
-              size="large"
-              sx={{ 
-                borderColor: '#2196f3', 
-                color: '#2196f3', 
-                fontWeight: 700, 
-                fontSize: { xs: '0.9rem', md: '1rem' },
-                '&:hover': { background: '#2196f3', color: '#181818' } 
-              }}
-              onClick={() => navigate('/avis-client')}
-            >
-              {t('viewAllReviews')}
-            </Button>
           </Box>
+          ))}
         </Box>
       </Container>
     </Box>

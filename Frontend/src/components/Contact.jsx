@@ -1,213 +1,419 @@
-import React from "react";
 import {
   Box,
   Container,
   Typography,
   Stack,
   IconButton,
-  useTheme,
+  Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
 import {
-  Facebook,
   Instagram,
   Phone,
-  Email,
   LocationOn,
+  Email,
 } from "@mui/icons-material";
 
 export default function Contact() {
-  const theme = useTheme();
-
   return (
-    <Container sx={{ py: 8 }}>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          alignItems: "center",
-          gap: 6,
-          minHeight: "60vh",
-        }}
-      >
-        {/* Logo Section */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <img
-            src="/images/MorsliSportLogo.png"
-            alt="Morsli Sport Logo"
-            style={{
-              height: "200px",
-              width: "auto",
-              objectFit: "contain",
-              marginBottom: "20px",
-            }}
-          />
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: "bold",
-              color: theme.palette.text.primary,
-              textAlign: "center",
+    <Box sx={{ 
+      background: 'linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #111111 100%)', 
+      minHeight: '100vh', 
+      color: '#fff',
+      pt: { xs: 10, sm: 12 },
+      pb: 8
+    }}>
+      <Container maxWidth="lg">
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Typography 
+            variant="h2" 
+            sx={{ 
+              fontWeight: 900, 
               mb: 2,
+              fontSize: { xs: '2rem', sm: '3rem', md: '4rem' },
+              background: 'linear-gradient(135deg, #00d4ff 0%, #00b8d4 50%, #ffffff 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
             }}
           >
-            Morsli Sport
+            Contactez-nous
+          </Typography>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              color: '#94a3b8',
+              maxWidth: '600px',
+              mx: 'auto',
+              fontSize: { xs: '1rem', sm: '1.1rem' }
+            }}
+          >
+            Nous sommes là pour répondre à toutes vos questions
           </Typography>
         </Box>
 
-        {/* Contact Information Section */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            gap: 3,
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: "bold",
-              color: theme.palette.text.primary,
-              mb: 2,
-            }}
-          >
-            Contact Us
-          </Typography>
+        <Grid container spacing={4}>
+          {/* Contact Cards */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ 
+              background: 'rgba(17, 17, 17, 0.8)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(0, 212, 255, 0.2)',
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+              height: '100%',
+            }}>
+              <CardContent sx={{ p: 4 }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 800,
+                    mb: 4,
+                    color: '#00d4ff',
+                    textAlign: 'center'
+                  }}
+                >
+                  Informations de Contact
+                </Typography>
+                
+                <Stack spacing={3}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    background: 'rgba(0, 212, 255, 0.05)',
+                    border: '1px solid rgba(0, 212, 255, 0.1)',
+                  }}>
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 50,
+                      height: 50,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 184, 212, 0.15) 100%)',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                    }}>
+                      <Phone sx={{ color: '#00d4ff', fontSize: 24 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#94a3b8', mb: 0.5 }}>
+                        Téléphone
+                      </Typography>
+                      <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        +213 672 108 091
+                      </Typography>
+                    </Box>
+                  </Box>
 
-          <Typography
-            variant="body1"
-            sx={{
-              fontSize: "1.1rem",
-              lineHeight: 1.8,
-              color: theme.palette.text.secondary,
-              mb: 3,
-            }}
-          >
-            Welcome to Morsli Sport, your premier destination for high-quality sports equipment 
-            and fitness gear. We specialize in providing top-notch equipment for all your sporting 
-            needs, from cardio machines to martial arts gear.
-          </Typography>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    background: 'rgba(0, 212, 255, 0.05)',
+                    border: '1px solid rgba(0, 212, 255, 0.1)',
+                  }}>
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 50,
+                      height: 50,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 184, 212, 0.15) 100%)',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                    }}>
+                      <Phone sx={{ color: '#00d4ff', fontSize: 24 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#94a3b8', mb: 0.5 }}>
+                        Téléphone
+                      </Typography>
+                      <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        +213 792 390 974
+                      </Typography>
+                    </Box>
+                  </Box>
 
-          {/* Contact Details */}
-          <Stack spacing={2}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Phone sx={{ color: "#e94560", fontSize: "1.5rem" }} />
-              <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-                +213 672 108 091
-              </Typography>
-            </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    background: 'rgba(0, 212, 255, 0.05)',
+                    border: '1px solid rgba(0, 212, 255, 0.1)',
+                  }}>
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 50,
+                      height: 50,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 184, 212, 0.15) 100%)',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                    }}>
+                      <Phone sx={{ color: '#00d4ff', fontSize: 24 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#94a3b8', mb: 0.5 }}>
+                        Téléphone
+                      </Typography>
+                      <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        +213 557 862 386
+                      </Typography>
+                    </Box>
+                  </Box>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Phone sx={{ color: "#e94560", fontSize: "1.5rem" }} />
-              <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-                +213 792 390 974
-              </Typography>
-            </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    background: 'rgba(0, 212, 255, 0.05)',
+                    border: '1px solid rgba(0, 212, 255, 0.1)',
+                  }}>
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 50,
+                      height: 50,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 184, 212, 0.15) 100%)',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                    }}>
+                      <Email sx={{ color: '#00d4ff', fontSize: 24 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#94a3b8', mb: 0.5 }}>
+                        Email
+                      </Typography>
+                      <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        contact@morslisport.com
+                      </Typography>
+                    </Box>
+                  </Box>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Phone sx={{ color: "#e94560", fontSize: "1.5rem" }} />
-              <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-                +213 557 862 386
-              </Typography>
-            </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    background: 'rgba(0, 212, 255, 0.05)',
+                    border: '1px solid rgba(0, 212, 255, 0.1)',
+                  }}>
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 50,
+                      height: 50,
+                      borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 184, 212, 0.15) 100%)',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                    }}>
+                      <LocationOn sx={{ color: '#00d4ff', fontSize: 24 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" sx={{ color: '#94a3b8', mb: 0.5 }}>
+                        Localisation
+                      </Typography>
+                      <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Algérie
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Email sx={{ color: "#e94560", fontSize: "1.5rem" }} />
-              <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-                contact@morslisport.com
-              </Typography>
-            </Box>
+          {/* Social Media & Hours */}
+          <Grid item xs={12} md={6}>
+            <Stack spacing={4}>
+              {/* Social Media */}
+              <Card sx={{ 
+                background: 'rgba(17, 17, 17, 0.8)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(0, 212, 255, 0.2)',
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+              }}>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      fontWeight: 800,
+                      mb: 3,
+                      color: '#00d4ff',
+                      textAlign: 'center'
+                    }}
+                  >
+                    Suivez-nous
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                    <IconButton
+                      component="a"
+                      href="https://www.instagram.com/morsli_sport.shop?igsh=MXg5bzIxMjFvOGluMA=="
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{
+                        background: "linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)",
+                        color: "white",
+                        width: 60,
+                        height: 60,
+                        boxShadow: '0 4px 20px rgba(220, 38, 67, 0.4)',
+                        "&:hover": {
+                          transform: 'scale(1.1)',
+                          boxShadow: '0 6px 30px rgba(220, 38, 67, 0.6)',
+                        },
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      <Instagram sx={{ fontSize: 32 }} />
+                    </IconButton>
+                  </Box>
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      textAlign: 'center', 
+                      color: '#94a3b8',
+                      fontWeight: 600
+                    }}
+                  >
+                    @morsli_sport.shop
+                  </Typography>
+                </CardContent>
+              </Card>
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <LocationOn sx={{ color: "#e94560", fontSize: "1.5rem" }} />
-              <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-                Algeria
-              </Typography>
-            </Box>
-          </Stack>
-
-          {/* Social Media */}
-          <Box sx={{ mt: 3 }}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: "bold",
-                color: theme.palette.text.primary,
-                mb: 2,
-              }}
-            >
-              Follow Us
-            </Typography>
-            <Stack direction="row" spacing={2}>
-              <IconButton
-                sx={{
-                  bgcolor: "#1877f2",
-                  color: "white",
-                  "&:hover": {
-                    bgcolor: "#166fe5",
-                  },
-                  width: 50,
-                  height: 50,
-                }}
-              >
-                <Facebook />
-              </IconButton>
-              <IconButton
-                component="a"
-                href="https://www.instagram.com/morsli_sport.shop?igsh=MXg5bzIxMjFvOGluMA=="
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  background: "linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%)",
-                  color: "white",
-                  "&:hover": {
-                    opacity: 0.9,
-                  },
-                  width: 50,
-                  height: 50,
-                }}
-              >
-                <Instagram />
-              </IconButton>
+              {/* Business Hours */}
+              <Card sx={{ 
+                background: 'rgba(17, 17, 17, 0.8)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(0, 212, 255, 0.2)',
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+              }}>
+                <CardContent sx={{ p: 4 }}>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      fontWeight: 800,
+                      mb: 3,
+                      color: '#00d4ff',
+                      textAlign: 'center'
+                    }}
+                  >
+                    Heures d'ouverture
+                  </Typography>
+                  <Stack spacing={2}>
+                    <Box sx={{ 
+                      p: 2, 
+                      borderRadius: 2,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                    }}>
+                      <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Lundi
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        8:00 - 18:00
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      p: 2, 
+                      borderRadius: 2,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                    }}>
+                      <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Mardi
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        8:00 - 18:00
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      p: 2, 
+                      borderRadius: 2,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                    }}>
+                      <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Mercredi
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        8:00 - 18:00
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      p: 2, 
+                      borderRadius: 2,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                    }}>
+                      <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Jeudi
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        8:00 - 18:00
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      p: 2, 
+                      borderRadius: 2,
+                      background: 'rgba(212, 255, 0, 0.05)',
+                      border: '1px solid rgba(212, 255, 0, 0.2)',
+                    }}>
+                      <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Vendredi
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        Fermé
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      p: 2, 
+                      borderRadius: 2,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                    }}>
+                      <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Samedi
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        8:00 - 18:00
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      p: 2, 
+                      borderRadius: 2,
+                      background: 'rgba(0, 212, 255, 0.05)',
+                      border: '1px solid rgba(0, 212, 255, 0.1)',
+                    }}>
+                      <Typography variant="body1" sx={{ color: '#ffffff', fontWeight: 600 }}>
+                        Dimanche
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                        8:00 - 18:00
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
             </Stack>
-            <Typography variant="body2" sx={{ mt: 1, color: theme.palette.text.secondary }}>
-              @morsli_sport.shop
-            </Typography>
-          </Box>
-
-          {/* Business Hours */}
-          <Box sx={{ mt: 3 }}>
-            <Typography
-              variant="h6"
-              sx={{
-                fontWeight: "bold",
-                color: theme.palette.text.primary,
-                mb: 2,
-              }}
-            >
-              Business Hours
-            </Typography>
-            <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-              Monday - Friday: 9:00 AM - 8:00 PM
-            </Typography>
-            <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-              Saturday: 9:00 AM - 6:00 PM
-            </Typography>
-            <Typography variant="body1" sx={{ fontSize: "1.1rem" }}>
-              Sunday: 10:00 AM - 4:00 PM
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-    </Container>
+          </Grid>
+        </Grid>
+      </Container>
+    </Box>
   );
-} 
+}

@@ -5,13 +5,22 @@ import App from './App.jsx'
 import { Provider } from 'react-redux'
 import { store } from './Redux/store'
 import { LanguageProvider } from './LanguageContext'
+import ErrorBoundary from './components/ErrorBoundary'
 
-createRoot(document.getElementById('root')).render(
+// Ensure root element exists
+const rootElement = document.getElementById('root');
+if (!rootElement) {
+  throw new Error('Root element not found');
+}
+
+createRoot(rootElement).render(
   <StrictMode>
+    <ErrorBoundary>
     <Provider store={store}>
       <LanguageProvider>
         <App />
       </LanguageProvider>
     </Provider>
+    </ErrorBoundary>
   </StrictMode>
 )

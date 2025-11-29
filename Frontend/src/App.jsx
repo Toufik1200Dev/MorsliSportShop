@@ -1,98 +1,95 @@
-import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ColorModeContext, useMode, getThemeWithDirection } from "./theme";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 
 import Header1 from "./components/header/Header1";
-import Header2 from "./components/header/Header2";
-import Header3 from "./components/header/Header3";
-import Hero from "./components/hero/Hero";
-import Main from "./components/main/Main";
-import Footer from "./components/footer/Footer";
 import ScrollToTop from "./scroll/ScrollToTop";
-import ProductDetailsPage from "./components/main/ProductDetailsPage";
-
 import { LanguageProvider, useLanguage } from "./LanguageContext";
-import SportHome from "./components/SportHome";
-import Contact from "./components/Contact";
-import ClientReviews from "./components/ClientReviews";
+import { AdminAuthProvider } from "./context/AdminAuthContext";
 
-// @ts-ignore
-const API_URL = import.meta.env.VITE_BASE_URL || "https://morsli-sport-shop.onrender.com";
+// Lazy load components for code splitting
+const SportHome = lazy(() => import("./components/SportHome"));
+const Contact = lazy(() => import("./components/Contact"));
+const ClientReviews = lazy(() => import("./components/ClientReviews"));
+const ProductDetailsPage = lazy(() => import("./components/main/ProductDetailsPage"));
+const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
+const AdminLogin = lazy(() => import("./components/admin/AdminLogin"));
+const ProductsManagement = lazy(() => import("./components/admin/ProductsManagement"));
+const OrdersManagement = lazy(() => import("./components/admin/OrdersManagement"));
+const Footer = lazy(() => import("./components/footer/Footer"));
+
+// Loading component with Tailwind CSS
+const LoadingFallback = () => (
+  <div className="flex justify-center items-center min-h-[50vh] bg-gradient-to-br from-black via-gray-900 to-black">
+    <div className="text-center">
+      <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+    </div>
+  </div>
+);
 
 function App() {
-  const [theme, colorMode, mode] = useMode();
   const { currentLanguage } = useLanguage();
   const direction = currentLanguage === 'ar' ? 'rtl' : 'ltr';
-  const themed = getThemeWithDirection(mode, direction, currentLanguage);
 
-  useEffect(() => {
-    const keepAlive = () => {
-      fetch(`${API_URL.replace(/\/$/, '')}/api/products`) // A lightweight endpoint
-        .then(res => {
-          if (res.ok) {
-            // Backend is awake and responding
-          } else {
-            // Backend ping failed, server might be down or sleeping
-          }
-        })
-        .catch(err => {
-          // Error pinging backend
-        });
-    };
-
-    const intervalId = setInterval(keepAlive, 300000); // 5 minutes
-    keepAlive(); // Initial ping
-
-    return () => clearInterval(intervalId);
-  }, []);
-
-  // Set body class for Arabic font
+  // Set body class for Arabic font and direction
   useEffect(() => {
     if (currentLanguage === 'ar') {
       document.body.classList.add('arabic-font');
+      document.documentElement.setAttribute('dir', 'rtl');
+      document.documentElement.setAttribute('lang', 'ar');
     } else {
       document.body.classList.remove('arabic-font');
+      document.documentElement.setAttribute('dir', 'ltr');
+      document.documentElement.setAttribute('lang', currentLanguage);
     }
   }, [currentLanguage]);
 
+  // Order cleanup is now handled by backend automatically
+
   return (
-    <LanguageProvider>
-      <ColorModeContext.Provider
-        // @ts-ignore
-        value={colorMode}
+    <AdminAuthProvider>
+      <div 
+        className="min-h-screen bg-black"
+        dir={direction}
+        lang={currentLanguage}
+        style={{ fontFamily: currentLanguage === 'ar' ? 'Cairo, Arial, sans-serif' : 'inherit' }}
       >
-        <ThemeProvider
-          // @ts-ignore
-          theme={themed}
-        >
-          <CssBaseline />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Box
-              sx={{
-                bgcolor:
-                  // @ts-ignore
-                  themed.palette.bg.main,
-                direction,
-                fontFamily: currentLanguage === 'ar' ? 'Cairo, Arial, sans-serif' : 'inherit',
-              }}
-            >
-              <Header1 />
-              <Header2 />
-              <Header3 />
-              <Routes>
-                <Route path="/" element={<SportHome />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/avis-client" element={<ClientReviews />} />
-                <Route path="/product/:productId" element={<ProductDetailsPage />} />
-              </Routes>
-              <Footer />
-            </Box>
-          </BrowserRouter>
-        </ThemeProvider>
-      </ColorModeContext.Provider>
-    </LanguageProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Admin Routes */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route path="products" element={<ProductsManagement />} />
+                <Route path="orders" element={<OrdersManagement />} />
+                <Route index element={<ProductsManagement />} />
+              </Route>
+
+              {/* Public Routes */}
+              <Route
+                path="/*"
+                element={
+                  <div className="min-h-screen bg-black">
+                    <Header1 />
+                    <Suspense fallback={<LoadingFallback />}>
+                      <Routes>
+                        <Route path="/" element={<SportHome />} />
+                        <Route path="/contact" element={<Contact />} />
+                        <Route path="/avis-client" element={<ClientReviews />} />
+                        <Route path="/product/:productId" element={<ProductDetailsPage />} />
+                      </Routes>
+                    </Suspense>
+                    <Suspense fallback={null}>
+                      <Footer />
+                    </Suspense>
+                  </div>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </div>
+    </AdminAuthProvider>
   );
 }
 
