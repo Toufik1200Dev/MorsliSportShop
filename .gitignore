@@ -10,11 +10,20 @@
 /Backend/data/
 !/Backend/data/.gitkeep
 /Backend/.env
+/Backend/.env.local
+/Backend/.env.production
+/Backend/.env.development
+/Backend/.env*
+!/Backend/.env.example
 /Backend/config/google-credentials.json
 *.db
 
 # Frontend
 /Frontend/dist
+/Frontend/.env
+/Frontend/.env.local
+/Frontend/.env.production
+/Frontend/.env.development
 /Frontend/.env*
 !/Frontend/.env.example
 
